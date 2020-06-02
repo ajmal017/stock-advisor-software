@@ -35,6 +35,10 @@ SECURITY_API = intrinio_sdk.SecurityApi()
 
 INTRINIO_CACHE_PREFIX = 'intrinio'
 
+'''
+  Testing APIs using requests package
+'''
+
 
 def test_api_endpoint():
     """
@@ -55,6 +59,11 @@ def test_api_endpoint():
     if not response.ok:
         raise DataError(
             "Invalid response from Intrinio Endpoint", Exception(r.text))
+
+
+'''
+  Pricing statement APIs using the SECURITY_API client
+'''
 
 
 def get_target_price_std_dev(ticker: str, start_date: datetime, end_date: datetime):
@@ -118,8 +127,8 @@ def get_daily_stock_close_prices(ticker: str, start_date: datetime, end_date: da
       }
     '''
 
-    start_date_str = intrinio_util.date_to_string(start_date)
-    end_date_str = intrinio_util.date_to_string(end_date)
+    start_date_str = intrinio_util.date_to_string(start_date).replace('-', '')
+    end_date_str = intrinio_util.date_to_string(end_date).replace('-', '')
 
     price_dict = {}
 
@@ -171,6 +180,93 @@ def get_latest_close_price(ticker, price_date: datetime, max_looback: int):
     price_date = sorted(list(price_dict.keys()), reverse=True)[0]
 
     return (price_date, price_dict[price_date])
+
+'''
+  Price indicator APIs using the SECURITY_API client
+'''
+
+
+def get_macd_indicator(ticker: str, start_date: datetime, end_date: datetime,
+                       fast_period: int, slow_period: int, signal_period: int):
+    '''
+      Returns a dictionary of MACD indicators given a ticker symbol,
+      a range of dates and parameters.  
+      Currently only returns one page of 100 results
+
+      Parameters
+      ----------
+      ticker : str
+        Ticker Symbol
+      start_date : object
+        The beginning price date as python date object
+      end_date : object
+        The end price date as python date object
+      fast_period: int
+        the MACD fast period parameter
+      slow_perdiod: int
+        the MACD slow period parameter
+      signal_period:
+        the MACD signal period parameter
+
+      Returns
+      -----------
+      a dictionary of date->price like this
+      {
+          "2020-05-29": {
+              "macd_histogram": -0.5565262759342229,
+              "macd_line": 9.361568685377279,
+              "signal_line": 9.918094961311501
+          },
+          "2020-05-28": {
+              "macd_histogram": -0.3259226480613542,
+              "macd_line": 9.731303882233703,
+              "signal_line": 10.057226530295058
+          }
+      }
+    '''
+
+    start_date_str = intrinio_util.date_to_string(
+        start_date).replace('-', '').replace('-', '')
+    end_date_str = intrinio_util.date_to_string(
+        end_date).replace('-', '').replace('-', '')
+
+    macd_dict = {}
+
+    cache_key = "%s-%s-%s-%s-%d.%d.%d-%s" % (INTRINIO_CACHE_PREFIX,
+                                             ticker, start_date_str, end_date_str, fast_period, slow_period, signal_period, "tech-macd")
+    api_response = cache.read(cache_key)
+
+    if api_response is None:
+        try:
+            api_response = SECURITY_API.get_security_price_technicals_macd(
+                ticker, fast_period=fast_period, slow_period=slow_period, signal_period=signal_period, price_key='close', start_date=start_date, end_date=end_date, page_size=100)
+
+            cache.write(cache_key, api_response)
+        except ApiException as ae:
+            raise DataError("API Error while reading MACD indicator from Intrinio Security API: ('%s', %s - %s (%d, %d, %d))" %
+                            (ticker, start_date_str, end_date_str, fast_period, slow_period, signal_period), ae)
+        except Exception as e:
+            raise ValidationError("Unknown Error while reading MACD indicator from Intrinio Security API: ('%s', %s - %s (%d, %d, %d))" %
+                                  (ticker, start_date_str, end_date_str, fast_period, slow_period, signal_period), e)
+
+    macd_list = api_response.technicals
+
+    if len(macd_list) == 0:
+        raise DataError("No macd indicators returned from Intrinio Security API: ('%s', %s - %s (%d, %d, %d))" %
+                        (ticker, start_date_str, end_date_str, fast_period, slow_period, signal_period), None)
+
+    for macd in macd_list:
+        macd_dict[intrinio_util.date_to_string(macd.date_time)] = {
+            "macd_histogram": macd.macd_histogram,
+            "macd_line": macd.macd_line,
+            "signal_line": macd.signal_line
+        }
+
+    return macd_dict
+
+'''
+  Finacial statement APIs using the FUNDAMENTALS_API client
+'''
 
 
 def get_historical_revenue(ticker: str, year_from: int, year_to: int):
