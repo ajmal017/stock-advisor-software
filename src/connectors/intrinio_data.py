@@ -190,7 +190,7 @@ def get_macd_indicator(ticker: str, start_date: datetime, end_date: datetime,
                        fast_period: int, slow_period: int, signal_period: int):
     '''
       Returns a dictionary of MACD indicators given a ticker symbol,
-      a range of dates and parameters.  
+      a date range and necessary MACD parameters.  
       Currently only returns one page of 100 results
 
       Parameters
@@ -252,7 +252,7 @@ def get_macd_indicator(ticker: str, start_date: datetime, end_date: datetime,
     macd_list = api_response.technicals
 
     if len(macd_list) == 0:
-        raise DataError("No macd indicators returned from Intrinio Security API: ('%s', %s - %s (%d, %d, %d))" %
+        raise DataError("No MACD indicators returned from Intrinio Security API: ('%s', %s - %s (%d, %d, %d))" %
                         (ticker, start_date_str, end_date_str, fast_period, slow_period, signal_period), None)
 
     for macd in macd_list:
@@ -263,6 +263,78 @@ def get_macd_indicator(ticker: str, start_date: datetime, end_date: datetime,
         }
 
     return macd_dict
+
+
+def get_sma_indicator(ticker: str, start_date: datetime, end_date: datetime,
+                      period_days: int):
+    '''
+      Returns a dictionary of SMA (simple moving average) indicators given a 
+      ticker symbol, a date range and the period.  
+
+      Currently only returns one page of 100 results
+
+      Parameters
+      ----------
+      ticker : str
+        Ticker Symbol
+      start_date : object
+        The beginning price date as python date object
+      end_date : object
+        The end price date as python date object
+      period_days: int
+        The number of price days included in this average
+
+
+      Returns
+      -----------
+      a dictionary of date->price like this
+      {
+        "2020-05-29": 282.51779999999997,
+        "2020-05-28": 281.09239999999994,
+        "2020-05-27": 279.7845999999999,
+        "2020-05-26": 278.26659999999987,
+        "2020-05-22": 277.4913999999999,
+        "2020-05-21": 276.07819999999987,
+        "2020-05-20": 275.2497999999999
+      }
+
+    '''
+
+    start_date_str = intrinio_util.date_to_string(
+        start_date).replace('-', '').replace('-', '')
+    end_date_str = intrinio_util.date_to_string(
+        end_date).replace('-', '').replace('-', '')
+
+    sma_dict = {}
+
+    cache_key = "%s-%s-%s-%s-%d-%s" % (INTRINIO_CACHE_PREFIX,
+                                       ticker, start_date_str, end_date_str, period_days, "tech-sma")
+    api_response = cache.read(cache_key)
+
+    if api_response is None:
+        try:
+            api_response = SECURITY_API.get_security_price_technicals_sma(
+                ticker, period=period_days, price_key='close', start_date=start_date, end_date=end_date, page_size=100)
+
+            cache.write(cache_key, api_response)
+        except ApiException as ae:
+            raise DataError("API Error while reading SMA indicator from Intrinio Security API: ('%s', %s - %s (%d))" %
+                            (ticker, start_date_str, end_date_str, period_days), ae)
+        except Exception as e:
+            raise ValidationError("Unknown Error while reading SMA indicator from Intrinio Security API: ('%s', %s - %s (%d))" %
+                                  (ticker, start_date_str, end_date_str, period_days), e)
+
+    sma_list = api_response.technicals
+
+    if len(sma_list) == 0:
+        raise DataError("No SMA indicators returned from Intrinio Security API: ('%s', %s - %s (%d))" %
+                        (ticker, start_date_str, end_date_str, period_days), None)
+
+    for sma in sma_list:
+        sma_dict[intrinio_util.date_to_string(sma.date_time)] = sma.sma
+
+    return sma_dict
+
 
 '''
   Finacial statement APIs using the FUNDAMENTALS_API client

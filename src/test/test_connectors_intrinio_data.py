@@ -10,7 +10,7 @@ from intrinio_sdk.rest import ApiException
 from exception.exceptions import ValidationError, DataError
 from connectors import intrinio_data
 from connectors import intrinio_util
-from test import nop
+from support.financial_cache import FinancialCache
 import datetime
 
 
@@ -37,7 +37,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_read_financial_metric_with_api_exception(self):
         with patch.object(intrinio_data.COMPANY_API, 'get_company_historical_data',
                           side_effect=ApiException("Server Error")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
 
             (start_date) = intrinio_util.get_year_date_range(2018, 0)[0]
 
@@ -86,7 +87,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_read_company_data_point_with_api_exception(self):
         with patch.object(intrinio_data.COMPANY_API, 'get_company_data_point_number',
                           side_effect=ApiException("Server Error")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
 
             with self.assertRaises(DataError):
                 intrinio_data._read_company_data_point(
@@ -99,7 +101,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_historical_cashflow_stmt_with_api_exception(self):
         with patch.object(intrinio_data.FUNDAMENTALS_API, 'get_fundamental_standardized_financials',
                           side_effect=ApiException("Not Found")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(DataError):
                 intrinio_data.get_historical_cashflow_stmt(
                     'NON-EXISTENT-TICKER', 2018, 2018, None)
@@ -107,7 +110,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_historical_income_stmt_with_api_exception(self):
         with patch.object(intrinio_data.FUNDAMENTALS_API, 'get_fundamental_standardized_financials',
                           side_effect=ApiException("Not Found")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(DataError):
                 intrinio_data.get_historical_income_stmt(
                     'NON-EXISTENT-TICKER', 2018, 2018, None)
@@ -115,7 +119,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_historical_balacesheet_stmt_with_api_exception(self):
         with patch.object(intrinio_data.FUNDAMENTALS_API, 'get_fundamental_standardized_financials',
                           side_effect=ApiException("Not Found")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(DataError):
                 intrinio_data.get_historical_balance_sheet(
                     'NON-EXISTENT-TICKER', 2018, 2018, None)
@@ -127,7 +132,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_daily_stock_prices_with_api_exception(self):
         with patch.object(intrinio_data.SECURITY_API, 'get_security_stock_prices',
                           side_effect=ApiException("Not Found")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(DataError):
                 intrinio_data.get_daily_stock_close_prices(
                     'NON-EXISTENT-TICKER', datetime.date(2018, 1, 1), datetime.date(2019, 1, 1))
@@ -135,7 +141,8 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_daily_stock_prices_with_other_exception(self):
         with patch.object(intrinio_data.SECURITY_API, 'get_security_stock_prices',
                           side_effect=KeyError("xxx")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(ValidationError):
                 intrinio_data.get_daily_stock_close_prices(
                     'NON-EXISTENT-TICKER', datetime.date(2018, 1, 1), datetime.date(2019, 1, 1))
@@ -148,7 +155,72 @@ class TestConnectorsIntrinioData(unittest.TestCase):
     def test_latest_stock_prices_with_exception(self):
         with patch.object(intrinio_data.SECURITY_API, 'get_security_stock_prices',
                           side_effect=ApiException("Not Found")), \
-                patch('support.financial_cache.cache', new=nop.Nop()):
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
             with self.assertRaises(DataError):
                 intrinio_data.get_latest_close_price(
                     'XXX', datetime.date(2018, 1, 1), 5)
+
+    '''
+        Stock Indicator Tests
+    '''
+
+    def test_get_macd_indicator_with_api_exception(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_macd',
+                          side_effect=ApiException("Not Found")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(DataError):
+                intrinio_data.get_macd_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), 12, 26, 9)
+
+    def test_get_macd_indicator_with_generic_exception(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_macd',
+                          side_effect=Exception("Some Error")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(ValidationError):
+                intrinio_data.get_macd_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), 12, 26, 9)
+
+    def test_get_macd_indicator_with_bad_parameters(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_macd',
+                          side_effect=Exception("Some Error")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(ValidationError):
+                intrinio_data.get_macd_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), -1, -1, -1)
+
+    def test_get_sma_indicator_with_api_exception(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_sma',
+                          side_effect=ApiException("Not Found")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(DataError):
+                intrinio_data.get_sma_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), 50)
+
+    def test_get_sma_indicator_with_generic_exception(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_sma',
+                          side_effect=Exception("Some Error")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(ValidationError):
+                intrinio_data.get_sma_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), 50)
+
+    def test_get_sma_indicator_with_bad_parameters(self):
+        with patch.object(intrinio_data.SECURITY_API, 'get_security_price_technicals_sma',
+                          side_effect=Exception("Some Error")), \
+                patch.object(FinancialCache, 'read', return_value=None), \
+                patch.object(FinancialCache, 'write', return_value=None):
+
+            with self.assertRaises(ValidationError):
+                intrinio_data.get_sma_indicator(
+                    'AAPL', datetime.datetime(2020, 1, 1), datetime.datetime(2020, 5, 29), -1)

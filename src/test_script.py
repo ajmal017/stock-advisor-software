@@ -24,8 +24,12 @@ def main():
         start_date = datetime(2020, 1, 1)
         end_date = datetime(2020, 5, 29)
 
-        print(util.format_dict(intrinio_data.get_macd_indicator(
-            'AAPL', start_date, end_date, 12, 26, 9)))
+        '''print(util.format_dict(intrinio_data.get_macd_indicator(
+            'AAPL', start_date, end_date, 12, 26, 9)))'''
+
+        print(util.format_dict(intrinio_data.get_sma_indicator(
+            'AAPL', start_date, end_date, 50)))
+
     except Exception as e:
         log.error("Could run script, because, %s" % (str(e)))
 
