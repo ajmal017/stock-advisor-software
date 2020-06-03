@@ -1,6 +1,6 @@
 """Author: Mark Hanegraaff -- 2020
 """
-from abc import ABC, abstractmethod
+from abc import ABC
 import jsonschema
 import json
 from copy import deepcopy
