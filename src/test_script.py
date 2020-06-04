@@ -9,6 +9,8 @@ from datetime import datetime
 from support import logging_definition, util
 from connectors import connector_test, intrinio_data
 from strategies.macd_crossover_strategy import MACDCrossoverStrategy
+from model.ticker_list import TickerList
+from support import constants
 
 #
 # Main script
@@ -22,22 +24,16 @@ def main():
         Main testing script
     '''
     try:
-        start_date = datetime(2020, 1, 1)
-        end_date = datetime(2020, 5, 29)
-
-        '''print(util.format_dict(intrinio_data.get_macd_indicator(
-            'AAPL', start_date, end_date, 12, 26, 9)))
-
-        print(util.format_dict(intrinio_data.get_sma_indicator(
-            'AAPL', start_date, end_date, 50)))
-        '''
-
-        macd_strategy = MACDCrossoverStrategy()
+        '''macd_strategy = MACDCrossoverStrategy()
 
         macd_strategy.generate_recommendation()
         macd_strategy.display_results()
+        '''
 
+        ticker_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
+        #TickerList.from_local_file(ticker_path)
 
+        TickerList.try_from_s3("sa", "djia30.json")
 
     except Exception as e:
         log.error("Could run script, because, %s" % (str(e)))

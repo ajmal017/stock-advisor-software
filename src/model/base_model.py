@@ -55,7 +55,7 @@ class BaseModel(ABC):
                 model_str = file.read()
             model_dict = json.loads(model_str)
         except Exception as e:
-            raise ValidationError("Could not %s S3" % cls.model_name, e)
+            raise ValidationError("Could not load %s" % cls.model_name, e)
 
         return cls.from_dict(model_dict)
 
