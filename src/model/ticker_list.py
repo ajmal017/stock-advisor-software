@@ -12,8 +12,9 @@ log = logging.getLogger()
 
 class TickerList(BaseModel):
     """
-        A data structure representing a list of ticker symbols typically supplied as
-        an input to a strategy.
+        A data model representing a list of ticker symbols supplied as
+        an input to a strategy. This model contails a list of ticker symbols
+        and some descriptors (name, type) associated with them.
     """
 
     schema = {
@@ -84,6 +85,6 @@ class TickerList(BaseModel):
     @property
     def ticker_symbols(self):
         '''
-            ticker list getter
+            ticker list getter. Returns the ticker symbols list
         '''
         return self.model['ticker_symbols']

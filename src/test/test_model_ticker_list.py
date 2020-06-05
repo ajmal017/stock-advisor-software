@@ -1,5 +1,5 @@
 """Author: Mark Hanegraaff -- 2020
-    Testing class for the model.recommendation_set module
+    Testing class for the model.ticker_list module
 """
 import unittest
 from unittest.mock import patch
@@ -13,7 +13,7 @@ import os
 class TestModelTickerList(unittest.TestCase):
 
     """
-        Testing class for the model.recommendation_set module
+        Testing class for the model.ticker_list module
     """
 
     def test_from_s3_bucket_exception_upload_local_file(self):
@@ -27,7 +27,7 @@ class TestModelTickerList(unittest.TestCase):
                 "list_name": "DOW30",
                 "list_type": "US_EQUITIES",
                 "comparison_symbol": "DIA",
-                "ticker_symbols":[
+                "ticker_symbols": [
                     "AAPL",
                     "AXP",
                     "BA"
@@ -57,7 +57,6 @@ class TestModelTickerList(unittest.TestCase):
             # assert that s3_upload_object method was called once
             self.assertEqual(mock_s3_upload_object.call_count, 1)
 
-
     def test_ticker_list_matches(self):
         '''
             Tests that if the file was not found in s3, and
@@ -69,7 +68,7 @@ class TestModelTickerList(unittest.TestCase):
                 "list_name": "DOW30",
                 "list_type": "US_EQUITIES",
                 "comparison_symbol": "DIA",
-                "ticker_symbols":[
+                "ticker_symbols": [
                     "AAPL",
                     "AXP",
                     "BA"
@@ -77,12 +76,8 @@ class TestModelTickerList(unittest.TestCase):
             }
         )
 
-        self.assertListEqual(ticker_list.ticker_symbols, [
-                    "AAPL",
-                    "AXP",
-                    "BA"
-                ])
-
+        self.assertListEqual(ticker_list.ticker_symbols,
+                             ticker_list.model['ticker_symbols'])
 
     def test_from_s3_bucket_exception_no_local_file(self):
         '''
