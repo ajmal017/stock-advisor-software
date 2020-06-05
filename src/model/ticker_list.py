@@ -35,7 +35,6 @@ class TickerList(BaseModel):
         }
     }
 
-
     model_s3_folder_prefix = constants.S3_TICKER_FILE_FOLDER_PREFIX
 
     model_name = "TickerList"
@@ -57,9 +56,11 @@ class TickerList(BaseModel):
             if awe.resource_not_found():
                 log.debug("File not found in S3. Looking for local alternatives")
 
-                s3_object_path = "%s/%s" % (cls.model_s3_folder_prefix, cls.model_s3_object_name)
+                s3_object_path = "%s/%s" % (cls.model_s3_folder_prefix,
+                                            cls.model_s3_object_name)
 
-                log.debug("Reading S3 Data Bucket location from CloudFormation Exports")
+                log.debug(
+                    "Reading S3 Data Bucket location from CloudFormation Exports")
                 s3_data_bucket_name = aws_service_wrapper.cf_read_export_value(
                     constants.s3_data_bucket_export_name(app_ns))
 
@@ -80,4 +81,9 @@ class TickerList(BaseModel):
             else:
                 raise awe
 
- 
+    @property
+    def ticker_symbols(self):
+        '''
+            ticker list getter
+        '''
+        return self.model['ticker_symbols']

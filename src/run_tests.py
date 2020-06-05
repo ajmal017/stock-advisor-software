@@ -17,7 +17,7 @@ from test.test_connector_connector_test import TestConnectorsTest
 from test.test_services_recommendation import TestServicesRecommendation
 from test.test_services_portfolio_mgr import TestServicePortfolioManager
 from test.test_services_broker import TestBroker
-from test.test_model_ticker_file import TestModelTickerFile
+from test.test_model_ticker_list import TestModelTickerList
 from test.test_model_recommendation_set import TestSecurityRecommendationSet
 from test.test_model_base_model import TestBaseModel
 from test.test_model_portfolio import TestPortfolio

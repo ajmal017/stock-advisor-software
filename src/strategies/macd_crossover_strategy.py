@@ -40,5 +40,5 @@ class MACDCrossoverStrategy(BaseStrategy):
             TBD
         '''
 
-        log.info("Displaying results of MACD strategy: %s" % util.format_dict(self.recommendation_set.model))
-
+        log.info("Displaying results of MACD strategy: %s" %
+                 util.format_dict(self.recommendation_set.model))

@@ -11,7 +11,7 @@ class BaseStrategy(ABC):
 
         Attributes:
             STRATEGY_NAME: The display name associated with this strategy
-            
+
     '''
 
     STRATEGY_NAME = ""
@@ -37,4 +37,3 @@ class BaseStrategy(ABC):
     @abstractmethod
     def display_results(self):
         pass
-

@@ -31,7 +31,7 @@ def main():
         '''
 
         ticker_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        #TickerList.from_local_file(ticker_path)
+        # TickerList.from_local_file(ticker_path)
 
         TickerList.try_from_s3("sa", "djia30.json")
 
