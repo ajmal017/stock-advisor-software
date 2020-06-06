@@ -150,9 +150,9 @@ class PriceDispersionStrategy():
 
         for ticker in self.ticker_list:
             try:
-                target_price_sdtdev = intrinio_data.get_target_price_std_dev(ticker, dds, dde)[
+                target_price_sdtdev = intrinio_data.get_zacks_target_price_std_dev(ticker, dds, dde)[
                     year][month]
-                target_price_avg = intrinio_data.get_target_price_mean(ticker, dds, dde)[
+                target_price_avg = intrinio_data.get_zacks_target_price_mean(ticker, dds, dde)[
                     year][month]
                 dispersion_stdev_pct = target_price_sdtdev / target_price_avg * 100
 

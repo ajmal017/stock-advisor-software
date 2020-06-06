@@ -8,6 +8,7 @@ from test.test_exceptions import TestExceptions
 from test.test_support_financial_cache import TestFinancialCache
 from test.test_support_util import TestSupportUtil
 from test.test_strategies_price_dispersion import TestStrategiesPriceDispersion
+from test.test_strategies_macd_crossover import TestStrategiesMACDCrossover
 from test.test_strategies_calculator import TestStrategiesCalculator
 from test.test_connectors_aws_service_wrapper import TestConnectorsAWSServiceWrapper
 from test.test_connectors_td_ameritrade import TestConnectorsTDAmeritrade

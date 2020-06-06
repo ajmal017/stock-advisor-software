@@ -66,7 +66,7 @@ def test_api_endpoint():
 '''
 
 
-def get_target_price_std_dev(ticker: str, start_date: datetime, end_date: datetime):
+def get_zacks_target_price_std_dev(ticker: str, start_date: datetime, end_date: datetime):
     """
       retrieves the 'zacks_target_price_std_dev' data point for the supplied date 
       range. see the '_get_company_historical_data()' pydoc for specific information
@@ -78,7 +78,7 @@ def get_target_price_std_dev(ticker: str, start_date: datetime, end_date: dateti
     )
 
 
-def get_target_price_mean(ticker: str, start_date: datetime, end_date: datetime):
+def get_zacks_target_price_mean(ticker: str, start_date: datetime, end_date: datetime):
     """
       retrieves the 'zacks_target_price_mean' data point for the supplied date 
       range. see the '_get_company_historical_data()' pydoc for specific information
@@ -90,7 +90,7 @@ def get_target_price_mean(ticker: str, start_date: datetime, end_date: datetime)
     )
 
 
-def get_target_price_cnt(ticker: str, start_date: datetime, end_date: datetime):
+def get_zacks_target_price_cnt(ticker: str, start_date: datetime, end_date: datetime):
     """
       retrieves the 'zacks_target_price_cnt' data point for the supplied date 
       range. see the '_get_company_historical_data()' pydoc for specific information
