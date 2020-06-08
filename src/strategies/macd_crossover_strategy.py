@@ -16,10 +16,11 @@ log = logging.getLogger()
 
 class MACDCrossoverStrategy(BaseStrategy):
     '''
-        This strategy uses the MACD indicator to detect whether a stock is
-        rallying or crashing. A rally is identified when a stock price
-        is above the moving average for at least 3 days, and when the macd line
-        crosses over the signa like.
+        This strategy uses a combination of SMA and MACD indicator to detect whether 
+        a stock is rallying or crashing. A rally is identified when a stock price
+        is above the moving average, and when the macd line
+        crosses over the signal line. When this happens, the security will be
+        included in the recommendation set, otherwise it will not.
 
         Attributes
         ----------
@@ -43,7 +44,22 @@ class MACDCrossoverStrategy(BaseStrategy):
 
     def _read_price_metrics(self, ticker_symbol: str, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
         '''
-            TBD
+            Helper function that downloads the necessary data to perfom the MACD Crossover calculation.
+            Most data includes a short history to help filter out false signals.
+
+
+            Returns
+            -------
+            A Tuple with the following elements:
+            current_price: float
+                The Current price for the ticker symbol
+            sma_list: list
+                The part 3 days of Simple Moving average prices
+            macd_lines: list
+                The past 3 days of MACD values
+            signal_lines
+                The past 3 days of MACD Singal values
+
         '''
 
         lookback_days = 3
@@ -95,9 +111,30 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         return (current_price, sma_list, macd_lines, signal_lines)
 
-    def _analyze_security(self, ticker_symbol: str, current_price: float, sma_list: list, macd_lines: float, signal_lines: float):
+    def _analyze_security(self, current_price: float, sma_list: list, macd_lines: float, signal_lines: float):
         '''
-            TBD
+            Helper function that, based on the analysis data, determines whether
+            a positive MACD crossover has occurred or not.
+
+            The basic idea is that the if price is above the SMA, and MACD is above the
+            signal the stock is rallying. A rally triggers a buy signal, while a crash
+            triggers a sell.
+            
+            But identifying crossovers isn't so obvious; sometimes these value trend closely to each other
+            and so it may be necessary to look at historical data too.
+            
+            To account for that, the method includes a threshold to prevent the buy/sell signal 
+            from flipping too frequently when values are close. 
+            
+            Specifically before identifying a crash:
+            1) Ensure that if current price < SMA it has been so for at least the
+                past 3 days.
+            2) Ensure that if macd dips below the signal, but it still close to it
+                (within a threshold) it has been so for at least the past 3 days
+
+            Returns
+            -------
+            True if the security is rallying, otherwise False
         '''
 
         # Price must have ben above sma for 3 days
@@ -119,7 +156,13 @@ class MACDCrossoverStrategy(BaseStrategy):
 
     def generate_recommendation(self, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
         '''
-            TBD
+            Analyzes all securitues supplied in the ticker list and returns a SecurityRecommendationSet
+            object containing all stocks with a positive MACD crossover. These are stocks
+            that are rallying and have positive momentum behind them.
+
+            Parameters
+            ----------
+            sma_period: 
         '''
 
         for ticker_symbol in self.ticker_list.ticker_symbols:
@@ -127,7 +170,7 @@ class MACDCrossoverStrategy(BaseStrategy):
                 ticker_symbol, sma_period, macd_fast_period, macd_slow_period, macd_signal_period)
 
             buy_sell_indicator = self._analyze_security(
-                ticker_symbol, current_price, sma_list, macd_lines, signal_lines)
+                current_price, sma_list, macd_lines, signal_lines)
 
             log.info("%s: (%.3f, %s, %s, %s) --> %s" % (ticker_symbol, current_price, ["{0:0.2f}".format(i) for i in sma_list], ["{0:0.2f}".format(i) for i in macd_lines], ["{0:0.2f}".format(i) for i in signal_lines],
                                                                   buy_sell_indicator))

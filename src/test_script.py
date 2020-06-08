@@ -26,14 +26,13 @@ def main():
     try:
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, datetime(2020, 4, 1))
+            ticker_file_path, datetime(2020, 5, 5))
 
         macd_strategy.generate_recommendation(50, 12, 26, 9)
         macd_strategy.display_results()
 
     except Exception as e:
         log.error("Could run script, because, %s" % (str(e)))
-        raise e
 
 if __name__ == "__main__":
     main()
