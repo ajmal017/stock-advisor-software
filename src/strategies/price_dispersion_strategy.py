@@ -101,7 +101,7 @@ class PriceDispersionStrategy():
         self.raw_dataframe = None
         self.recommendation_dataframe = None
 
-    def __load_financial_data__(self):
+    def _load_financial_data(self):
         """
             loads the raw financial required by this strategy and returns it as
             a dictionary suitable for Pandas processing.
@@ -204,7 +204,7 @@ class PriceDispersionStrategy():
             None
         """
 
-        financial_data = self.__load_financial_data__()
+        financial_data = self._load_financial_data()
 
         self.raw_dataframe = pd.DataFrame(financial_data)
         pd.options.display.float_format = '{:.3f}'.format

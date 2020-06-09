@@ -2,10 +2,12 @@
 """
 
 import logging
+import pandas as pd
 from datetime import datetime, timedelta
 from collections import OrderedDict
 from support import logging_definition, util
 from strategies.base_strategy import BaseStrategy
+from strategies import calculator 
 from model.recommendation_set import SecurityRecommendationSet
 from model.ticker_list import TickerList
 from exception.exceptions import ValidationError, DataError
@@ -41,6 +43,8 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         self.ticker_list = TickerList.from_local_file(ticker_list_path)
         self.analysis_date = analysis_date
+
+        self.raw_dataframe = None
 
     def _read_price_metrics(self, ticker_symbol: str, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
         '''
@@ -160,10 +164,32 @@ class MACDCrossoverStrategy(BaseStrategy):
             object containing all stocks with a positive MACD crossover. These are stocks
             that are rallying and have positive momentum behind them.
 
+            self.recommendation_set
+
             Parameters
             ----------
-            sma_period: 
+            sma_period: int
+                The Simple Moving average perdiod in days, e.g. 50
+            macd_fast_period: int
+                MACD fast moving period in days, e.g. 12
+            macd_slow_period: int
+                MACD slow moving period in days, e.g. 24
+            macd_signal_period: int
+                MACD signal period in days, e.g. 9
+
         '''
+
+        analysis_data = {
+            'ticker_symbol': [],
+            'price_date': [],
+            'price': [],
+            'sma': [],
+            'macd': [],
+            'signal': [],
+            'buy_sell_indicator': []
+        }
+
+        recommended_securities = {}
 
         for ticker_symbol in self.ticker_list.ticker_symbols:
             (current_price, sma_list, macd_lines, signal_lines) = self._read_price_metrics(
@@ -171,15 +197,31 @@ class MACDCrossoverStrategy(BaseStrategy):
 
             buy_sell_indicator = self._analyze_security(
                 current_price, sma_list, macd_lines, signal_lines)
+            
+            analysis_data['ticker_symbol'].append(ticker_symbol)
+            analysis_data['price_date'].append(self.analysis_date)
+            analysis_data['price'].append(current_price)
+            analysis_data['sma'].append(sma_list[0])
+            analysis_data['macd'].append(macd_lines[0])
+            analysis_data['signal'].append(signal_lines[0])
+            if buy_sell_indicator == True:
+                analysis_data['buy_sell_indicator'].append("BUY")
+                recommended_securities[ticker_symbol] = current_price
+            else:
+                analysis_data['buy_sell_indicator'].append("SELL")
 
-            log.info("%s: (%.3f, %s, %s, %s) --> %s" % (ticker_symbol, current_price, ["{0:0.2f}".format(i) for i in sma_list], ["{0:0.2f}".format(i) for i in macd_lines], ["{0:0.2f}".format(i) for i in signal_lines],
-                                                                  buy_sell_indicator))
+            #log.info("%s: (%.3f, %s, %s, %s) --> %s" % (ticker_symbol, current_price, ["{0:0.2f}".format(i) for i in sma_list], ["{0:0.2f}".format(i) for i in macd_lines], ["{0:0.2f}".format(i) for i in signal_lines],
+            #                                                      buy_sell_indicator))
+
+        self.raw_dataframe = pd.DataFrame(analysis_data)
+        pd.options.display.float_format = '{:.3f}'.format
+
+        self.raw_dataframe = self.raw_dataframe.sort_values(
+            ['buy_sell_indicator'], ascending=False)
 
         self.recommendation_set = SecurityRecommendationSet.from_parameters(
             datetime.now(), datetime.now(), datetime.now(), datetime.now(), self.STRATEGY_NAME,
-            "US_EQUITIES", {
-                "AAPL": 100
-            }
+            "US_EQUITIES", recommended_securities
         )
 
     def display_results(self):
@@ -187,5 +229,6 @@ class MACDCrossoverStrategy(BaseStrategy):
             TBD
         '''
 
-        log.info("Displaying results of MACD strategy: %s" %
-                 util.format_dict(self.recommendation_set.model))
+        log.info("Displaying results of MACD strategy: ")
+        print(self.raw_dataframe.to_string(index=False))
+        log.info(util.format_dict(self.recommendation_set.model))

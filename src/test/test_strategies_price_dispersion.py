@@ -42,4 +42,4 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
             strategy = PriceDispersionStrategy(['1', '2'], 2020, 2, 1)
 
             with self.assertRaises(DataError):
-                strategy.__load_financial_data__()
+                strategy._load_financial_data()

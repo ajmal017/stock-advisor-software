@@ -139,9 +139,9 @@ def display_calculation_dataframe(month: int, year: int, strategy: object, curre
 
     log.info("Calculating Current Returns")
     raw_dataframe = calculator.mark_to_market(
-        strategy.raw_dataframe, current_price_date)
+        strategy.raw_dataframe, 'ticker', 'analysis_price', current_price_date)
     recommendation_dataframe = calculator.mark_to_market(
-        strategy.recommendation_dataframe, current_price_date)
+        strategy.recommendation_dataframe, 'ticker', 'analysis_price', current_price_date)
 
     log.info("")
     log.info("Recommended Securities")

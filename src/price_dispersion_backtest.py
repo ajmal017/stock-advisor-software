@@ -86,17 +86,17 @@ def main():
         date_3m = data_end_date + timedelta(days=90)
 
         portfolio_1m = calculator.mark_to_market(
-            strategy.recommendation_dataframe, date_1m)['actual_return'].mean() * 100
+            strategy.recommendation_dataframe, 'ticker', 'analysis_price', date_1m)['actual_return'].mean() * 100
         portfolio_2m = calculator.mark_to_market(
-            strategy.recommendation_dataframe, date_2m)['actual_return'].mean() * 100
+            strategy.recommendation_dataframe, 'ticker', 'analysis_price', date_2m)['actual_return'].mean() * 100
         portfolio_3m = calculator.mark_to_market(
-            strategy.recommendation_dataframe, date_3m)['actual_return'].mean() * 100
+            strategy.recommendation_dataframe, 'ticker', 'analysis_price', date_3m)['actual_return'].mean() * 100
 
-        all_stocks_1m = calculator.mark_to_market(strategy.raw_dataframe, date_1m)[
+        all_stocks_1m = calculator.mark_to_market(strategy.raw_dataframe, 'ticker', 'analysis_price', date_1m)[
             'actual_return'].mean() * 100
-        all_stocks_2m = calculator.mark_to_market(strategy.raw_dataframe, date_2m)[
+        all_stocks_2m = calculator.mark_to_market(strategy.raw_dataframe, 'ticker', 'analysis_price', date_2m)[
             'actual_return'].mean() * 100
-        all_stocks_3m = calculator.mark_to_market(strategy.raw_dataframe, date_3m)[
+        all_stocks_3m = calculator.mark_to_market(strategy.raw_dataframe, 'ticker', 'analysis_price', date_3m)[
             'actual_return'].mean() * 100
 
         backtest_report['investment_period'].append(
