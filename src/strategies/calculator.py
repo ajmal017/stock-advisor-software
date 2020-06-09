@@ -9,7 +9,6 @@ from connectors import intrinio_data
 from exception.exceptions import ValidationError, CalculationError, DataError
 
 
-
 def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str, price_date: datetime):
     """
         Peforms a Mark to Market on a Pandas dataframe representing
