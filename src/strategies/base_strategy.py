@@ -35,10 +35,10 @@ class BaseStrategy(ABC):
         except Exception as e:
             raise ValidationError("Could not load Strategy Configuration", e)
 
-
         # make sure the file is not empty. If it is, raise an exception
         if len(self.config.sections()) == 0:
-            raise ValidationError("Strategy Configuration [%s] is empty" % constants.CONFIG_FILE_PATH, None)
+            raise ValidationError(
+                "Strategy Configuration [%s] is empty" % constants.CONFIG_FILE_PATH, None)
 
     @abstractmethod
     def generate_recommendation(self):

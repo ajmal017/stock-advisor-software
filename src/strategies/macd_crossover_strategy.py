@@ -3,6 +3,7 @@
 
 import logging
 import pandas as pd
+import dateutil.parser as parser
 from datetime import datetime, timedelta
 from collections import OrderedDict
 from support import logging_definition, util
@@ -32,10 +33,10 @@ class MACDCrossoverStrategy(BaseStrategy):
     '''
 
     STRATEGY_NAME = "MACD_CROSSOVER"
+    CONFIG_SECTION = "macd_conversion_strategy"
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
 
-    def __init__(self, ticker_list_path: str, analysis_date: datetime,
-                 sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
+    def __init__(self, ticker_list_path: str, mode: str):
         '''
             Defines the recommendation_set variable which must be an instance
             of the SecurityRecommendationSet class
@@ -60,14 +61,22 @@ class MACDCrossoverStrategy(BaseStrategy):
         pd.options.display.float_format = '{:.3f}'.format
 
         self.ticker_list = TickerList.from_local_file(ticker_list_path)
-        self.analysis_date = analysis_date
 
         self.raw_dataframe = None
+        self.mode = mode
 
-        self.sma_period = sma_period
-        self.macd_fast_period = macd_fast_period
-        self.macd_slow_period = macd_slow_period
-        self.macd_signal_period = macd_signal_period
+        config_params = dict(self.config[self.CONFIG_SECTION])
+
+        try:
+            self.sma_period = int(config_params['sma_period'])
+            self.macd_fast_period = int(config_params['macd_fast_period'])
+            self.macd_slow_period = int(config_params['macd_slow_period'])
+            self.macd_signal_period = int(config_params['macd_signal_period'])
+            self.analysis_date = parser.parse(
+                config_params['test.analysis_date_yyymmdd'])
+        except Exception as e:
+            raise ValidationError(
+                "Could not read MACD Crossover Strategy configuration", e)
 
     def _read_price_metrics(self, ticker_symbol: str):
         '''
@@ -244,6 +253,7 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         log.info("Displaying results of MACD strategy")
         log.info("Analysis Date: %s" % self.analysis_date.strftime("%Y-%m-%d"))
-        log.info("SMA Period: %d, MACD Parameters: (%d, %d, %d)" % (self.sma_period, self.macd_fast_period, self.macd_slow_period,self.macd_signal_period))
+        log.info("SMA Period: %d, MACD Parameters: (%d, %d, %d)" % (
+            self.sma_period, self.macd_fast_period, self.macd_slow_period, self.macd_signal_period))
         print(self.raw_dataframe.to_string(index=False))
         log.info(util.format_dict(self.recommendation_set.model))
