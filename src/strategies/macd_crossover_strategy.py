@@ -57,6 +57,8 @@ class MACDCrossoverStrategy(BaseStrategy):
         '''
         super().__init__()
 
+        pd.options.display.float_format = '{:.3f}'.format
+
         self.ticker_list = TickerList.from_local_file(ticker_list_path)
         self.analysis_date = analysis_date
 
@@ -227,8 +229,6 @@ class MACDCrossoverStrategy(BaseStrategy):
             #                                                      buy_sell_indicator))
 
         self.raw_dataframe = pd.DataFrame(analysis_data)
-        pd.options.display.float_format = '{:.3f}'.format
-
         self.raw_dataframe = self.raw_dataframe.sort_values(
             ['recommendation', 'divergence'], ascending=(True, False))
 
