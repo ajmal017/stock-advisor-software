@@ -4,7 +4,9 @@ A general purpose test script. Nothing to see here.
 """
 import argparse
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+import pandas_market_calendars as mcal
+import pandas as pd
 
 from support import logging_definition, util, constants
 from connectors import connector_test, intrinio_data
@@ -25,8 +27,9 @@ def main():
     '''
     try:
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, "test")
+        macd_strategy = MACDCrossoverStrategy(ticker_file_path)
+        # macd_strategy = MACDCrossoverStrategy(
+        #    ticker_file_path, (datetime(2020, 6, 8), 50, 12, 26, 9))
 
         macd_strategy.generate_recommendation()
         macd_strategy.display_results()
