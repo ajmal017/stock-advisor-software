@@ -7,7 +7,7 @@ import dateutil.parser as parser
 from datetime import datetime, timedelta
 import pandas_market_calendars as mcal
 from collections import OrderedDict
-from support import logging_definition, util
+from support import util
 from strategies.base_strategy import BaseStrategy
 from strategies import calculator
 from model.recommendation_set import SecurityRecommendationSet
@@ -74,9 +74,9 @@ class MACDCrossoverStrategy(BaseStrategy):
         self.raw_dataframe = None
 
         if override_params == None:
-            config_params = dict(self.config[self.CONFIG_SECTION])
-
             try:
+                config_params = dict(self.config[self.CONFIG_SECTION])
+
                 self.sma_period = int(config_params['sma_period'])
                 self.macd_fast_period = int(config_params['macd_fast_period'])
                 self.macd_slow_period = int(config_params['macd_slow_period'])
@@ -85,7 +85,9 @@ class MACDCrossoverStrategy(BaseStrategy):
                 self.analysis_date = self._get_business_date(2, 0)
             except Exception as e:
                 raise ValidationError(
-                    "Could not read MACD Crossover Strategy configuration", e)
+                    "Could not read MACD Crossover Strategy configuration parameters", e)
+            finally:
+                self.config_file.close()
 
         else:
             try:
@@ -136,7 +138,6 @@ class MACDCrossoverStrategy(BaseStrategy):
         '''
             Helper function that downloads the necessary data to perfom the MACD Crossover calculation.
             Most data includes a short history to help filter out false signals.
-
 
             Returns
             -------

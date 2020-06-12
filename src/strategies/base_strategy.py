@@ -31,12 +31,14 @@ class BaseStrategy(ABC):
         self.config = configparser.ConfigParser(allow_no_value=True)
 
         try:
-            self.config.read_file(open(constants.CONFIG_FILE_PATH))
+            self.config_file = open(constants.CONFIG_FILE_PATH)
+            self.config.read_file(self.config_file)
         except Exception as e:
             raise ValidationError("Could not load Strategy Configuration", e)
 
         # make sure the file is not empty. If it is, raise an exception
         if len(self.config.sections()) == 0:
+            self.config_file.close()
             raise ValidationError(
                 "Strategy Configuration [%s] is empty" % constants.CONFIG_FILE_PATH, None)
 
