@@ -288,7 +288,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             self.assertListEqual(signal_lines, [1.1742387452049647, 0.9464445806270421, 0.7755482830402924])
 
     
-    def test_read_price_metrics(self):
+    def test_read_price_metrics_with_exception(self):
         with patch.object(intrinio_data, 'get_daily_stock_close_prices',
             return_value={
             "2020-06-08": 54.74
