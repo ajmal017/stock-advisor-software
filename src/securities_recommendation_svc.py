@@ -16,7 +16,7 @@ from exception.exceptions import ValidationError, AWSError
 from strategies.price_dispersion_strategy import PriceDispersionStrategy
 from strategies import calculator
 from services import recommendation_svc
-from model.ticker_file import TickerFile
+from model.ticker_list import TickerList
 from model.recommendation_set import SecurityRecommendationSet
 from support import constants
 from support import logging_definition
@@ -178,8 +178,8 @@ def main():
 
         if environment == "TEST":
             log.info("reading ticker file from local filesystem")
-            ticker_list = TickerFile.from_local_file(
-                constants.TICKER_DATA_DIR, ticker_file_name).ticker_list
+
+            ticker_list = TickerList.from_local_file("%s/%s" % (constants.TICKER_DATA_DIR, ticker_file_name))
 
             log.info("Performing Recommendation Algorithm")
             strategy = PriceDispersionStrategy(
@@ -194,8 +194,8 @@ def main():
             connector_test.test_intrinio_connectivity()
 
             log.info("Reading ticker file from s3 bucket")
-            ticker_list = TickerFile.from_s3_bucket(
-                ticker_file_name, app_ns).ticker_list
+            ticker_list = TickerList.try_from_s3(
+                app_ns, ticker_file_name)
 
             log.info("Loading existing recommendation set from S3")
             recommendation_set = None

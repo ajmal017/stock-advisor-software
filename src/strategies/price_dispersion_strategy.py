@@ -71,17 +71,17 @@ class PriceDispersionStrategy():
             month : analysis month
             output_size : number of recommended securities that will be returned
                 by this strategy
-
         """
 
-        if (ticker_list is None or len(ticker_list) == 0):
-            raise ValidationError("No ticker list was supplied", None)
+        if ticker_list == None:
+            raise ValidationError(
+                "No Ticker List was supplied", None)
 
-        if len(ticker_list) < 2:
+        if len(ticker_list.ticker_symbols) < 2:
             raise ValidationError(
                 "You must supply at least 2 ticker symbols", None)
 
-        if output_size <= 0:
+        if output_size == 0:
             raise ValidationError(
                 "Output size must be at least 1", None)
 
@@ -148,7 +148,7 @@ class PriceDispersionStrategy():
                       (dds.strftime("%Y-%m-%d"), dde.strftime("%Y-%m-%d")))
         logging.debug("Analysis price date is %s" % (dde.strftime("%Y-%m-%d")))
 
-        for ticker in self.ticker_list:
+        for ticker in self.ticker_list.ticker_symbols:
             try:
                 target_price_sdtdev = intrinio_data.get_zacks_target_price_std_dev(ticker, dds, dde)[
                     year][month]

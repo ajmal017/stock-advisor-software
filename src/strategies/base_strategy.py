@@ -33,6 +33,9 @@ class BaseStrategy(ABC):
             ticker_list: TickerList
                 Ticker List object containing securitues to analyze
         '''
+        if (ticker_list == None):
+            raise ValidationError("No Ticker List was supplied", None)
+
         self.recommendation_set = None
         self.config = configparser.ConfigParser(allow_no_value=True)
 
