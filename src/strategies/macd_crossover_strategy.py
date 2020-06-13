@@ -82,7 +82,7 @@ class MACDCrossoverStrategy(BaseStrategy):
                 self.macd_slow_period = int(config_params['macd_slow_period'])
                 self.macd_signal_period = int(
                     config_params['macd_signal_period'])
-                self.analysis_date = self._get_business_date(2, 0)
+                self.analysis_date = self._get_business_date(4, 0)
             except Exception as e:
                 raise ValidationError(
                     "Could not read MACD Crossover Strategy configuration parameters", e)
@@ -96,6 +96,8 @@ class MACDCrossoverStrategy(BaseStrategy):
             except Exception as e:
                 raise ValidationError(
                     "Could not initialize MACD Crossover Strategy", e)
+            finally:
+                self.config_file.close()
 
             self.analysis_date = analysis_date
             self.sma_period = sma_period
@@ -126,13 +128,18 @@ class MACDCrossoverStrategy(BaseStrategy):
         '''
         nyse_cal = mcal.get_calendar('NYSE')
 
-        today = datetime.now()
+        utcnow = pd.Timestamp.utcnow()
+        utcnow_with_delta = utcnow - \
+            pd.Timedelta(timedelta(days=days_offset, hours=hours_offset))
         market_calendar = nyse_cal.schedule(
-            today - timedelta(days=10), today + timedelta(days=10))
+            utcnow - timedelta(days=10), utcnow + timedelta(days=10))
         market_calendar = market_calendar[market_calendar.market_close < (
-            pd.Timestamp.utcnow() - pd.Timedelta(timedelta(days=days_offset, hours=hours_offset)))]
+            utcnow_with_delta)]
 
-        return market_calendar.index[-1]
+        try:
+            return market_calendar.index[-1]
+        except Exception as e:
+            raise ValidationError("Could not retrieve Business Date", e)
 
     def _read_price_metrics(self, ticker_symbol: str):
         '''
@@ -171,8 +178,6 @@ class MACDCrossoverStrategy(BaseStrategy):
             raise DataError("Unable to download Simple moving average for (%s, %s)" % (
                 ticker_symbol, dict_key))
         sma_ordered_dict = OrderedDict(sorted(sma_dict.items(), reverse=True))
-        sma_list = [sma_ordered_dict.popitem(
-            last=False)[1] for _ in range(0, lookback_days)]
 
         # Get last 3 days of macd and singal values
         macd_dict = intrinio_data.get_macd_indicator(
@@ -190,6 +195,9 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         try:
             current_price = current_price_dict[dict_key]
+            
+            sma_list = [sma_ordered_dict.popitem(
+                last=False)[1] for _ in range(0, lookback_days)]
 
             macd_lines = [macd_line_dict.popitem(
                 last=False)[1]['macd_line'] for _ in range(0, lookback_days)]
@@ -237,7 +245,7 @@ class MACDCrossoverStrategy(BaseStrategy):
         latest_signal = signal_lines[0]
 
         crossover_threshold = abs(
-            latest_macd / self.MACD_SIGNAL_CROSSOVER_FACTOR)
+            latest_macd * self.MACD_SIGNAL_CROSSOVER_FACTOR)
 
         if (latest_macd > latest_signal):
             return True
