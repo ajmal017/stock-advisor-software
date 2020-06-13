@@ -27,7 +27,8 @@ def main():
     '''
     try:
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        macd_strategy = MACDCrossoverStrategy(ticker_file_path)
+        ticker_file = TickerList.from_local_file(ticker_file_path)
+        macd_strategy = MACDCrossoverStrategy(ticker_file)
         # macd_strategy = MACDCrossoverStrategy(
         #    ticker_file_path, (datetime(2020, 6, 8), 50, 12, 26, 9))
 

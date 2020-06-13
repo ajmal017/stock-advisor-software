@@ -3,10 +3,11 @@
 Testing class for the strategies.macd_crossover_strategy module
 """
 import unittest
+import pandas as pd
 from unittest.mock import patch
 from datetime import datetime
 from support import constants
-import pandas as pd
+from model.ticker_list import TickerList
 from exception.exceptions import ValidationError
 from strategies.macd_crossover_strategy import MACDCrossoverStrategy
 from connectors import intrinio_data
@@ -21,23 +22,23 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         Constructor Tests
     '''
 
+    ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
+    ticker_list = TickerList.from_local_file(ticker_file_path)
+
     def test_init_no_config(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
         with patch('support.constants.CONFIG_FILE_PATH', "./config/does_not_exist.ini"):
             with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(ticker_file_path)
+                MACDCrossoverStrategy(self.ticker_list)
 
     def test_init_empty_config(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
         with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/empty-test-config.ini"):
             with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(ticker_file_path)
+                MACDCrossoverStrategy(self.ticker_list)
 
     def test_init_incorrect_config(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
         with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/bad-test-config.ini"):
             with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(ticker_file_path)
+                MACDCrossoverStrategy(self.ticker_list)
 
     '''
         _get_business_date tests

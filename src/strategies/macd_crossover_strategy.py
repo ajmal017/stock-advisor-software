@@ -11,7 +11,6 @@ from support import util
 from strategies.base_strategy import BaseStrategy
 from strategies import calculator
 from model.recommendation_set import SecurityRecommendationSet
-from model.ticker_list import TickerList
 from exception.exceptions import ValidationError, DataError
 from connectors import intrinio_data, intrinio_util
 
@@ -37,7 +36,7 @@ class MACDCrossoverStrategy(BaseStrategy):
     CONFIG_SECTION = "macd_conversion_strategy"
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
 
-    def __init__(self, ticker_list_path: str, override_params: tuple=None):
+    def __init__(self, ticker_list, override_params: tuple=None):
         '''
             Initializes the strategy.
 
@@ -50,8 +49,8 @@ class MACDCrossoverStrategy(BaseStrategy):
 
             Parameters
             ----------
-            ticker_list_path: str
-                Path to the ticker file containing securitues to analyze
+            ticker_list: TickerList
+                Ticker List object containing securitues to analyze
             override_params: tuple
                 A tuple containing the all strategy parameters override
                 analysis_date: datetime
@@ -65,11 +64,9 @@ class MACDCrossoverStrategy(BaseStrategy):
                 macd_signal_period: int
                     MACD signal period in days, e.g. 9
         '''
-        super().__init__()
+        super().__init__(ticker_list)
 
         pd.options.display.float_format = '{:.3f}'.format
-
-        self.ticker_list = TickerList.from_local_file(ticker_list_path)
 
         self.raw_dataframe = None
 
@@ -195,7 +192,7 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         try:
             current_price = current_price_dict[dict_key]
-            
+
             sma_list = [sma_ordered_dict.popitem(
                 last=False)[1] for _ in range(0, lookback_days)]
 

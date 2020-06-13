@@ -5,6 +5,7 @@ import logging
 import configparser
 from support import constants
 from exception.exceptions import ValidationError
+from model.ticker_list import TickerList
 
 
 class BaseStrategy(ABC):
@@ -22,13 +23,20 @@ class BaseStrategy(ABC):
     STRATEGY_NAME = ""
     CONFIG_SECTION = ""
 
-    def __init__(self):
+    def __init__(self, ticker_list: TickerList):
         '''
             Defines the recommendation_set variable which must be an instance
             of the SecurityRecommendationSet class
+
+            Parameters
+            ----------
+            ticker_list: TickerList
+                Ticker List object containing securitues to analyze
         '''
         self.recommendation_set = None
         self.config = configparser.ConfigParser(allow_no_value=True)
+
+        self.ticker_list = ticker_list
 
         try:
             self.config_file = open(constants.CONFIG_FILE_PATH)
