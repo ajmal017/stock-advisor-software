@@ -9,6 +9,7 @@ https://github.com/hanegraaff/stock-advisor-software
 import argparse
 import logging
 import traceback
+import pandas as pd
 from datetime import datetime, timedelta
 from connectors import aws_service_wrapper, connector_test
 from support import util
@@ -71,12 +72,9 @@ def parse_params():
     test_subparser = subparsers.add_parser(
         'test', help='Test mode. Analysis period and current date must be passed explicitly')
     test_subparser.add_argument(
-        "-analysis_month", help="Analysis period's month", type=int, required=True)
-    test_subparser.add_argument(
-        "-analysis_year", help="Analysis period's year", type=int, required=True)
+        "-analysis_period", help="Analysis period's month", type=str, required=True)
     test_subparser.add_argument(
         "-price_date", help="Price Date (YYYY/MM/DD) used to compute current returns", type=str, required=False)
-
     production_subparser = subparsers.add_parser(
         'production', help='Production mode. Analysis period and current date are determined at runtime')
     production_subparser.add_argument(
@@ -98,8 +96,6 @@ def parse_params():
 
         # argparse will ensure that these will be set to the allowed values
         if (environment == 'TEST'):
-            year = args.analysis_year
-            month = args.analysis_month
             price_date_string = args.price_date
 
             if price_date_string is None:
@@ -108,24 +104,25 @@ def parse_params():
             else:
                 current_price_date = recommendation_svc.validate_price_date(
                     args.price_date)
-
+            
             recommendation_svc.validate_commandline_parameters(
-                year, month, current_price_date
+                args.analysis_period, current_price_date
             )
+
+            analysis_period = pd.Period(args.analysis_period, 'M')
         else:
             current_price_date = datetime.now()
-            (year, month) = recommendation_svc.compute_analysis_period(
-                current_price_date)
+            analysis_period = pd.Period(datetime.now(), 'M')
             app_ns = args.app_namespace
 
         return (environment, ticker_file_name, output_size,
-                month, year, current_price_date, app_ns)
+                analysis_period, current_price_date, app_ns)
     except Exception as e:
         log.error("Could not validate command line parameters beacuse: %s" % str(e))
         exit(-1)
 
 
-def display_calculation_dataframe(month: int, year: int, strategy: object, current_price_date: datetime):
+def display_calculation_dataframe(analysis_period: str, strategy: object, current_price_date: datetime):
     '''
         Displays the results of the calculation using a Pandas dataframe,
         using the supplied PriceDispersionStrategy object.
@@ -153,8 +150,8 @@ def display_calculation_dataframe(month: int, year: int, strategy: object, curre
     log.info("Average Return: %.2f%%" %
              (raw_dataframe['actual_return'].mean() * 100))
     log.info("")
-    log.info("Analysis Period - %d/%d, Actual Returns as of: %s" %
-             (month, year, datetime.strftime(current_price_date, '%Y/%m/%d')))
+    log.info("Analysis Period - %s, Actual Returns as of: %s" %
+             (analysis_period, datetime.strftime(current_price_date, '%Y/%m/%d')))
 
     # Using the logger will mess up the header of this table
     print(raw_dataframe[['analysis_period', 'ticker', 'dispersion_stdev_pct',
@@ -166,15 +163,14 @@ def main():
         Main function for this script
     """
     try:
-        (environment, ticker_file_name, output_size, month,
-         year, current_price_date, app_ns) = parse_params()
+        (environment, ticker_file_name, output_size, analysis_period, 
+            current_price_date, app_ns) = parse_params()
 
         log.info("Parameters:")
         log.info("Environment: %s" % environment)
         log.info("Ticker File: %s" % ticker_file_name)
         log.info("Output Size: %d" % output_size)
-        log.info("Analysis Month: %d" % month)
-        log.info("Analysis Year: %d" % year)
+        log.info("Analysis period: %s" % analysis_period)
 
         if environment == "TEST":
             log.info("reading ticker file from local filesystem")
@@ -183,10 +179,10 @@ def main():
 
             log.info("Performing Recommendation Algorithm")
             strategy = PriceDispersionStrategy(
-                ticker_list, year, month, output_size)
+                ticker_list, analysis_period, output_size)
             strategy.generate_recommendation()
             display_calculation_dataframe(
-                month, year, strategy, current_price_date)
+                analysis_period, strategy, current_price_date)
         else:  # environment == "PRODUCTION"
             # test all connectivity upfront, so if there any issues
             # the problem becomes more apparent
@@ -212,16 +208,16 @@ def main():
 
                 log.info("Performing Recommendation Algorithm")
                 strategy = PriceDispersionStrategy(
-                    ticker_list, year, month, output_size)
+                    ticker_list, analysis_period, output_size)
 
                 strategy.generate_recommendation()
                 recommendation_set = strategy.recommendation_set
                 display_calculation_dataframe(
-                    month, year, strategy, current_price_date)
+                    analysis_period, strategy, current_price_date)
 
-                recommendation_set.save_to_s3(app_ns)
-                recommendation_svc.notify_new_recommendation(
-                    recommendation_set, app_ns)
+                #recommendation_set.save_to_s3(app_ns)
+                #recommendation_svc.notify_new_recommendation(
+                #    recommendation_set, app_ns)
             else:
                 log.info(
                     "Recommendation set is still valid. There is nothing to do")

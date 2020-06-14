@@ -7,6 +7,7 @@ be organized along with the service itself.
 import traceback
 import logging
 import dateutil.parser as parser
+import pandas as pd
 from datetime import datetime, timedelta
 from connectors import aws_service_wrapper
 from exception.exceptions import ValidationError, FileSystemError
@@ -54,32 +55,23 @@ def validate_price_date(price_date_str: str):
     return price_date
 
 
-def validate_commandline_parameters(year: int, month: int, current_price_date: datetime):
+def validate_commandline_parameters(analysis_period: str, current_price_date: datetime):
     '''
         Validates command line parameters and throws an exception
         if they are not properly set.
     '''
-    if (year < 2000 or (month not in range(1, 13))):
+
+    try:
+        period = pd.Period(analysis_period, 'M')
+    except Exception as e:
+        raise ValidationError("Could not parse analysis period", e)
+
+    if (period.year < 2000):
         raise ValidationError("Parameters out of range", None)
 
-    if datetime(year, month, 1) >= current_price_date:
+    if datetime(period.year, period.month, 1) >= current_price_date:
         raise ValidationError(
             "Price Date must be in future compared to analysis period", None)
-
-
-def compute_analysis_period(current_price_date: datetime):
-    '''
-        Computes the period of instead of reading them from the commmand line.
-        The analysis period is simply the month before the current_price_date
-
-        Returns
-        ----------
-        a tuple, (year, month) based on the supplied current_price_date
-    '''
-
-    last_month = datetime(current_price_date.year,
-                          current_price_date.month, 1) - timedelta(days=1)
-    return (last_month.year, last_month.month)
 
 
 def notify_new_recommendation(recommendation_set: object, app_ns: str):

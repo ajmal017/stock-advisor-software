@@ -3,6 +3,7 @@
 Testing class for the strategies.price_dispersion module
 """
 import unittest
+import pandas as pd
 from unittest.mock import patch
 from intrinio_sdk.rest import ApiException
 from connectors import intrinio_data
@@ -20,7 +21,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
 
     def test_init_no_tickers(self):
         with self.assertRaises(ValidationError):
-            PriceDispersionStrategy(None, 2020, 2, 1)
+            PriceDispersionStrategy(None, pd.Period('2020-02'), 1)
 
     def test_init_empty_ticker_list(self):
         with self.assertRaises(ValidationError):
@@ -31,7 +32,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                     "comparison_symbol": "DIA",
                     "ticker_symbols":[]
                 }
-            ), 2020, 2, 1)
+            ), pd.Period('2020-02'), 1)
 
     def test_init_too_few_tickers(self):
         with self.assertRaises(ValidationError):
@@ -41,7 +42,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                     "list_type": "US_EQUITIES",
                     "comparison_symbol": "DIA",
                     "ticker_symbols":['AAPL']
-                }), 2020, 2, 1)
+                }), pd.Period('2020-02'), 1)
 
     def test_init_output_size_too_small(self):
         with self.assertRaises(ValidationError):
@@ -50,7 +51,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                     "list_type": "US_EQUITIES",
                     "comparison_symbol": "DIA",
                     "ticker_symbols":['AAPL', 'V']
-                }), 2020, 1, 0)
+                }), pd.Period('2020-02'), 0)
 
     def test_init_enough_tickers(self):
         PriceDispersionStrategy(TickerList.from_dict({
@@ -58,7 +59,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                     "list_type": "US_EQUITIES",
                     "comparison_symbol": "DIA",
                     "ticker_symbols":['AAPL', 'V']
-                }), 2020, 1, 1)
+                }), pd.Period('2020-02'), 1)
 
     def test_api_exception(self):
         with patch.object(intrinio_data.COMPANY_API, 'get_company_historical_data',
@@ -69,7 +70,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                     "list_type": "US_EQUITIES",
                     "comparison_symbol": "DIA",
                     "ticker_symbols":['AAPL', 'V']
-                }), 2020, 2, 1)
+                }), pd.Period('2020-02'), 1)
 
             with self.assertRaises(DataError):
                 strategy._load_financial_data()

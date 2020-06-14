@@ -53,22 +53,19 @@ class PriceDispersionStrategy():
 
     STRATEGY_NAME = "PRICE_DISPERSION"
 
-    def __init__(self, ticker_list: list, data_year: int, data_month: int, output_size: int):
+    def __init__(self, ticker_list: list, analysis_period: str, output_size: int):
         """
-            Initializes the class with the ticker list, a year and a month.
+            Initializes the strategy given the ticker list, analysis period
+            and output size.
 
-            The year and month are used to set the context of the analysis,
-            meaning that financial data will be used for that year/month.
-            This is done to allow the analysis to be run in the past and test the
-            quality of the results.
-
+            The period is used to determine the range of financial data required
+            to perform the analysis, while the output size will limit the number
+            of securities that are recommended by the strategy.
 
             Parameters
             ------------
             ticker_list : list of tickers to be included in the analisys
-            ticker_source_name : The source of the ticker list. E.g. DOW30, or SP500
-            year : analysis year
-            month : analysis month
+            analysis_period: The analysis period as a string. E.g. '2020-06'
             output_size : number of recommended securities that will be returned
                 by this strategy
         """
@@ -81,8 +78,9 @@ class PriceDispersionStrategy():
             raise ValidationError(
                 "Output size must be at least 1", None)
 
-        (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_date_range(
-            data_year, data_month)
+        self.analysis_period = analysis_period
+        (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_period_range(
+            analysis_period)
 
         if (self.analysis_end_date > datetime.now()):
             logging.debug("Setting analysis end date to 'today'")
@@ -91,7 +89,6 @@ class PriceDispersionStrategy():
         self.ticker_list = ticker_list
 
         self.output_size = output_size
-        self.data_date = "%d-%d" % (data_year, data_month)
 
         self.recommendation_set = None
         self.raw_dataframe = None
@@ -158,7 +155,7 @@ class PriceDispersionStrategy():
                 analyst_expected_return = (
                     target_price_avg - analysis_price) / analysis_price
 
-                financial_data['analysis_period'].append(self.data_date)
+                financial_data['analysis_period'].append(self.analysis_period)
                 financial_data['ticker'].append(ticker)
                 financial_data['analysis_price'].append(analysis_price)
                 financial_data['target_price_avg'].append(target_price_avg)
@@ -220,10 +217,8 @@ class PriceDispersionStrategy():
             priced_securities[row.ticker] = row.analysis_price
 
         # determine the recommendation valid date range
-        valid = self.analysis_end_date + timedelta(days=1)
-
-        (valid_from, valid_to) = intrinio_util.get_month_date_range(
-            valid.year, valid.month)
+        (valid_from, valid_to) = intrinio_util.get_month_period_range(
+            self.analysis_period + 1)
 
         self.recommendation_set = SecurityRecommendationSet.from_parameters(datetime.now(), valid_from, valid_to, self.analysis_end_date,
                                                                             self.STRATEGY_NAME, "US Equities", priced_securities)

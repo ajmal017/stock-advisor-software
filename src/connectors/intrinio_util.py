@@ -44,6 +44,26 @@ def get_year_date_range(year: int, extend_by_days: int):
     return(date_to_string(start), date_to_string(end))
 
 
+def get_month_period_range(period: object):
+    """
+      returns the first and last date of the month as dates given the 
+      Pandas period.
+
+      E.g.
+        Period('2018-01', 'M') -> ('2018-01-01', '2018-01-31')
+
+      Returns
+      -------
+      A tuple of strings containing the start and end date.
+    """
+    __validate_year__(period.year)
+
+    start = datetime(period.year, period.month, 1)
+    end = datetime(period.year, period.month, period.day)
+
+    return(start, end)
+
+
 def get_month_date_range(year: int, month: int):
     """
       returns the first and last date of the month as dates
