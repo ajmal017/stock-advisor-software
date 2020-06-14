@@ -109,10 +109,10 @@ def parse_params():
                 args.analysis_period, current_price_date
             )
 
-            analysis_period = pd.Period(args.analysis_period, 'M')
+            analysis_period = args.analysis_period
         else:
             current_price_date = datetime.now()
-            analysis_period = pd.Period(datetime.now(), 'M')
+            analysis_period = (pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
             app_ns = args.app_namespace
 
         return (environment, ticker_file_name, output_size,
