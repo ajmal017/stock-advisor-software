@@ -73,13 +73,9 @@ class PriceDispersionStrategy():
                 by this strategy
         """
 
-        if ticker_list == None:
+        if ticker_list == None or len(ticker_list.ticker_symbols) < 2:
             raise ValidationError(
-                "No Ticker List was supplied", None)
-
-        if len(ticker_list.ticker_symbols) < 2:
-            raise ValidationError(
-                "You must supply at least 2 ticker symbols", None)
+                "Ticker List must contain at least 2 symbols", None)
 
         if output_size == 0:
             raise ValidationError(
