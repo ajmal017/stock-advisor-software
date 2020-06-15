@@ -5,12 +5,12 @@ import logging
 import pandas as pd
 import dateutil.parser as parser
 from datetime import datetime, timedelta
-import pandas_market_calendars as mcal
 from collections import OrderedDict
 from support import util
 from strategies.base_strategy import BaseStrategy
 from strategies import calculator
 from model.recommendation_set import SecurityRecommendationSet
+from model.ticker_list import TickerList
 from exception.exceptions import ValidationError, DataError
 from connectors import intrinio_data, intrinio_util
 
@@ -36,107 +36,58 @@ class MACDCrossoverStrategy(BaseStrategy):
     CONFIG_SECTION = "macd_conversion_strategy"
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
 
-    def __init__(self, ticker_list, override_params: tuple=None):
+    def __init__(self, ticker_list: object, analysis_date: datetime, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
         '''
-            Initializes the strategy.
-
-            When running in production only the ticker_list_path must be supplied.
-            The analysis date ill be determined at runtime, and strategy parameters 
-            will be read from configuration.
-
-            When running a backtest then all parameters, including the analysis
-            must be passed in the override_params tuple
+            Initializes the strategy by supplying all parameters directly
 
             Parameters
             ----------
             ticker_list: TickerList
-                Ticker List object containing securitues to analyze
-            override_params: tuple
-                A tuple containing the all strategy parameters override
-                analysis_date: datetime
-                    Analysis (price) date
-                sma_period: int
-                    The Simple Moving average perdiod in days, e.g. 50
-                macd_fast_period: int
-                    MACD fast moving period in days, e.g. 12
-                macd_slow_period: int
-                    MACD slow moving period in days, e.g. 24
-                macd_signal_period: int
-                    MACD signal period in days, e.g. 9
+                TickerList object representing the input to the strategy
+            analysis_date: datetime
+                Analysis (price) date
+            sma_period: int
+                The Simple Moving average perdiod in days, e.g. 50
+            macd_fast_period: int
+                MACD fast moving period in days, e.g. 12
+            macd_slow_period: int
+                MACD slow moving period in days, e.g. 24
+            macd_signal_period: int
+                MACD signal period in days, e.g. 9
         '''
-        super().__init__(ticker_list)
+        
+        self.ticker_list = ticker_list
+        self.analysis_date = analysis_date
+        self.sma_period = sma_period
+        self.macd_fast_period = macd_fast_period
+        self.macd_slow_period = macd_slow_period
+        self.macd_signal_period = macd_signal_period
 
-        pd.options.display.float_format = '{:.3f}'.format
-
-        self.raw_dataframe = None
-
-        if override_params == None:
-            try:
-                config_params = dict(self.config[self.CONFIG_SECTION])
-
-                self.sma_period = int(config_params['sma_period'])
-                self.macd_fast_period = int(config_params['macd_fast_period'])
-                self.macd_slow_period = int(config_params['macd_slow_period'])
-                self.macd_signal_period = int(
-                    config_params['macd_signal_period'])
-                self.analysis_date = self._get_business_date(4, 0)
-            except Exception as e:
-                raise ValidationError(
-                    "Could not read MACD Crossover Strategy configuration parameters", e)
-            finally:
-                self.config_file.close()
-
-        else:
-            try:
-                (analysis_date, sma_period, macd_fast_period,
-                 macd_slow_period, macd_signal_period) = override_params
-            except Exception as e:
-                raise ValidationError(
-                    "Could not initialize MACD Crossover Strategy", e)
-            finally:
-                self.config_file.close()
-
-            self.analysis_date = analysis_date
-            self.sma_period = sma_period
-            self.macd_fast_period = macd_fast_period
-            self.macd_slow_period = macd_slow_period
-            self.macd_signal_period = macd_signal_period
-
-    def _get_business_date(self, days_offset: int, hours_offset: int):
+    @classmethod
+    def from_configuration(cls, configuration: object, app_ns: str):
         '''
-            Retuns the latest market 'closed' date used
-            to retrieve the latest EOD data. The offsets are used 
-            to adjust the results when EOD data is on a delay
-
-            e.g. days_offet = 0
-                2020/06/10 10:00PM --> June 10th 
-                2020/06/10 11:00AM --> June 9th 
-
-            e.g. days_offet = 2
-                2020/06/10 10:00PM --> June 8th 
-                2020/06/10 11:00AM --> June 5th 
-
-            Parameters
-            ----------
-            days_offset: int
-                the number of days to offset the result
-            hours_offset: int
-                the number of hours to offset the close time
+            See BaseStrategy.from_configuration for documentation
         '''
-        nyse_cal = mcal.get_calendar('NYSE')
 
-        utcnow = pd.Timestamp.utcnow()
-        utcnow_with_delta = utcnow - \
-            pd.Timedelta(timedelta(days=days_offset, hours=hours_offset))
-        market_calendar = nyse_cal.schedule(
-            utcnow - timedelta(days=10), utcnow + timedelta(days=10))
-        market_calendar = market_calendar[market_calendar.market_close < (
-            utcnow_with_delta)]
+        analysis_date = util.get_business_date(4, 0)
 
         try:
-            return market_calendar.index[-1]
+            config_params = dict(configuration.config[cls.CONFIG_SECTION])
+
+            sma_period = int(config_params['sma_period'])
+            ticker_file_name = config_params['ticker_list_file_name']
+            macd_fast_period = int(config_params['macd_fast_period'])
+            macd_slow_period = int(config_params['macd_slow_period'])
+            macd_signal_period = int(config_params['macd_signal_period'])
         except Exception as e:
-            raise ValidationError("Could not retrieve Business Date", e)
+            raise ValidationError(
+                "Could not read MACD Crossover Strategy configuration parameters", e)
+        finally:
+            configuration.close()
+
+        ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
+
+        return cls(ticker_list, analysis_date, sma_period, macd_fast_period, macd_slow_period, macd_signal_period)
 
     def _read_price_metrics(self, ticker_symbol: str):
         '''

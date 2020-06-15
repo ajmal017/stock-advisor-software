@@ -52,7 +52,7 @@ class TickerList(BaseModel):
         cls.model_s3_object_name = ticker_file_name
 
         try:
-            cls.from_s3(app_ns)
+            return cls.from_s3(app_ns)
         except AWSError as awe:
             if awe.resource_not_found():
                 log.debug("File not found in S3. Looking for local alternatives")

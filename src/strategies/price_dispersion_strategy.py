@@ -8,9 +8,11 @@ import logging
 from support import util
 from exception.exceptions import BaseError, ValidationError, DataError
 from model.recommendation_set import SecurityRecommendationSet
+from model.ticker_list import TickerList
+from strategies.base_strategy import BaseStrategy
 
 
-class PriceDispersionStrategy():
+class PriceDispersionStrategy(BaseStrategy):
     """
         An trading strategy based on analyst target price agreement measured as
         the price dispersion, described in papers like these:
@@ -52,6 +54,7 @@ class PriceDispersionStrategy():
     """
 
     STRATEGY_NAME = "PRICE_DISPERSION"
+    CONFIG_SECTION = "price_dispersion_strategy"
 
     def __init__(self, ticker_list: list, analysis_period: str, output_size: int):
         """
@@ -78,9 +81,13 @@ class PriceDispersionStrategy():
             raise ValidationError(
                 "Output size must be at least 1", None)
 
-        self.analysis_period = analysis_period
+        try:
+            self.analysis_period = pd.Period(analysis_period, 'M')
+        except Exception as e:
+            raise ValidationError("Could not parse Analysis Period", e)
+
         (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_period_range(
-            analysis_period)
+            self.analysis_period)
 
         if (self.analysis_end_date > datetime.now()):
             logging.debug("Setting analysis end date to 'today'")
@@ -93,6 +100,29 @@ class PriceDispersionStrategy():
         self.recommendation_set = None
         self.raw_dataframe = None
         self.recommendation_dataframe = None
+
+    @classmethod
+    def from_configuration(cls, configuration: object, app_ns: str):
+        '''
+            See BaseStrategy.from_configuration for documentation
+        '''
+
+        try:
+            config_params = dict(configuration.config[cls.CONFIG_SECTION])
+
+            ticker_file_name = config_params['ticker_list_file_name']
+            output_size = int(config_params['output_size'])
+        except Exception as e:
+            raise ValidationError(
+                "Could not read MACD Crossover Strategy configuration parameters", e)
+        finally:
+            configuration.close()
+
+        ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
+        analysis_period = (pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
+
+        return cls(ticker_list, analysis_period, output_size)
+
 
     def _load_financial_data(self):
         """

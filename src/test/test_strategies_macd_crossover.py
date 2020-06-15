@@ -26,17 +26,17 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
     ticker_list = TickerList.from_local_file(ticker_file_path)
 
     def test_init_no_config(self):
-        with patch('support.constants.CONFIG_FILE_PATH', "./config/does_not_exist.ini"):
+        with patch('support.constants.CONFIG_FILE_NAME', "./config/does_not_exist.ini"):
             with self.assertRaises(ValidationError):
                 MACDCrossoverStrategy(self.ticker_list)
 
     def test_init_empty_config(self):
-        with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/empty-test-config.ini"):
+        with patch('support.constants.CONFIG_FILE_NAME', "./test/config-unittest-bad/empty-test-config.ini"):
             with self.assertRaises(ValidationError):
                 MACDCrossoverStrategy(self.ticker_list)
 
     def test_init_incorrect_config(self):
-        with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/bad-test-config.ini"):
+        with patch('support.constants.CONFIG_FILE_NAME', "./test/config-unittest-bad/bad-test-config.ini"):
             with self.assertRaises(ValidationError):
                 MACDCrossoverStrategy(self.ticker_list)
 

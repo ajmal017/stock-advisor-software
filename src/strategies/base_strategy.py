@@ -5,6 +5,7 @@ import logging
 import configparser
 from support import constants
 from exception.exceptions import ValidationError
+from support.configuration import Configuration
 from model.ticker_list import TickerList
 
 
@@ -22,37 +23,26 @@ class BaseStrategy(ABC):
 
     STRATEGY_NAME = ""
     CONFIG_SECTION = ""
-
-    def __init__(self, ticker_list: TickerList):
+    
+    @classmethod
+    @abstractmethod
+    def from_configuration(cls, configuration: object, app_ns: str):
         '''
-            Defines the recommendation_set variable which must be an instance
-            of the SecurityRecommendationSet class
+            Every Strategy must have the ability to be initialized from a local
+            configuration file. This is how strategies must be intialzied in
+            production. Specific strategies should also offer traditional
+            contstructors can be used for backtesting purposes.
 
             Parameters
             ----------
-            ticker_list: TickerList
-                Ticker List object containing securitues to analyze
+            configuration: Configuration
+                Configuration object used to initialize this class
+            app_ns: str
+                Application namespace used to identify
+
         '''
-        if (ticker_list == None):
-            raise ValidationError("No Ticker List was supplied", None)
-
-        self.recommendation_set = None
-        self.config = configparser.ConfigParser(allow_no_value=True)
-
-        self.ticker_list = ticker_list
-
-        try:
-            self.config_file = open(constants.CONFIG_FILE_PATH)
-            self.config.read_file(self.config_file)
-        except Exception as e:
-            raise ValidationError("Could not load Strategy Configuration", e)
-
-        # make sure the file is not empty. If it is, raise an exception
-        if len(self.config.sections()) == 0:
-            self.config_file.close()
-            raise ValidationError(
-                "Strategy Configuration [%s] is empty" % constants.CONFIG_FILE_PATH, None)
-
+        pass
+    
     @abstractmethod
     def generate_recommendation(self):
         '''

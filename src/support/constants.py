@@ -13,6 +13,11 @@ FINANCIAL_DATA_DIR = "./financial-data/"
 CONFIG_FILE_PATH = "./config/strategies.ini"
 
 
+CONFIG_FILE_NAME = "./config/strategies.ini"
+STRATEGY_CONFIG_FILE_NAME = "strategies.ini"
+CONFIG_FILE_PATH = "./config/"
+
+
 '''
     Cloud Infrastructure Constants
 '''
@@ -32,6 +37,7 @@ S3_RECOMMENDATION_SET_OBJECT_NAME = "security-recommendation-set.json"
 S3_PORTFOLIO_FOLDER_PREFIX = "portfolios"
 S3_PORTFOLIO_OBJECT_NAME = "current-portfolio.json"
 S3_FINANCIAL_CACHE_FOLDER_PREFIX = "financial-cache"
+S3_CONFIG_OLDER_PREFIX = "configuration"
 
 
 def sns_app_notifications_topic_arn(app_ns):
