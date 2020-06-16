@@ -7,7 +7,7 @@ This module contains application constants and static configuration
     filesystem constants
 '''
 
-APP_DATA_DIR = "./app_data"
+APP_DATA_DIR = "./app_data/"
 TICKER_DATA_DIR = "./ticker-data"
 FINANCIAL_DATA_DIR = "./financial-data/"
 CONFIG_FILE_PATH = "./config/strategies.ini"

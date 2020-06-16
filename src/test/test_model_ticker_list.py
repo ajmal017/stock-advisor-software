@@ -22,7 +22,8 @@ class TestModelTickerList(unittest.TestCase):
             a local alternative is found, it will self heal by
             restoring the s3 file
         '''
-        expected_return = TickerList.from_dict(
+
+        ticker_list = TickerList.from_dict(
             {
                 "list_name": "DOW30",
                 "list_type": "US_EQUITIES",
@@ -36,7 +37,7 @@ class TestModelTickerList(unittest.TestCase):
         )
 
         with patch.object(TickerList, 'from_local_file',
-                          return_value=expected_return), \
+                return_value=ticker_list), \
             patch.object(aws_service_wrapper, 'cf_list_exports',
                          return_value={
                              constants.s3_data_bucket_export_name('sa'): "test-bucket"
@@ -57,12 +58,33 @@ class TestModelTickerList(unittest.TestCase):
             # assert that s3_upload_object method was called once
             self.assertEqual(mock_s3_upload_object.call_count, 1)
 
-    def test_ticker_list_matches(self):
+    def test_from_s3_bucket_exception_no_local_file(self):
         '''
             Tests that if the file was not found in s3, and
             a local alternative is found, it will self heal by
             restoring the s3 file
         '''
+
+        with patch.object(aws_service_wrapper, 'cf_list_exports',
+                         return_value={
+                             constants.s3_data_bucket_export_name('sa'): "test-bucket"
+                         }),\
+            patch.object(TickerList, 'from_s3',
+                         side_effect=AWSError(
+                             "test", Exception(
+                                 "An error occurred (404) when calling the HeadObject operation: Not Found")
+                         )
+                         ),\
+            patch.object(aws_service_wrapper, 's3_upload_object',
+                         return_value=None) as mock_s3_upload_object,\
+            patch.object(os.path, 'isfile',
+                         return_value=False):
+
+            with self.assertRaises(AWSError):
+                TickerList.try_from_s3('sa', 'ticker-file')
+
+
+    def test_ticker_list_matches(self):
         ticker_list = TickerList.from_dict(
             {
                 "list_name": "DOW30",
@@ -79,10 +101,10 @@ class TestModelTickerList(unittest.TestCase):
         self.assertListEqual(ticker_list.ticker_symbols,
                              ticker_list.model['ticker_symbols'])
 
-    def test_from_s3_bucket_exception_no_local_file(self):
+    def test_from_s3_bucket_exception(self):
         '''
-            Tests that if the file was not found in s3, and
-            no local alternative is found, it throws an exception.
+            Tests that if there was an error downloading the ticker file 
+            from S3, it will thrown an exception
         '''
 
         with patch.object(aws_service_wrapper, 'cf_list_exports',
@@ -93,9 +115,7 @@ class TestModelTickerList(unittest.TestCase):
                          side_effect=AWSError(
                              "test", Exception("Download Exception")
                          )
-                         ),\
-            patch.object(os.path, 'isfile',
-                         return_value=False):
+                         ):
 
             try:
                 TickerList.try_from_s3('sa', 'ticker-file')

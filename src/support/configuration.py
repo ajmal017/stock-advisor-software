@@ -39,6 +39,7 @@ class Configuration():
             raise ValidationError(
                 "Configuration file [%s] does not include any sections" % constants.CONFIG_FILE_PATH, None)
 
+        cls.config_file.close()
         return cls()
 
     @classmethod

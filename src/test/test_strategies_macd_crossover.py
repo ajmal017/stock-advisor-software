@@ -11,6 +11,8 @@ from model.ticker_list import TickerList
 from exception.exceptions import ValidationError
 from strategies.macd_crossover_strategy import MACDCrossoverStrategy
 from connectors import intrinio_data
+from support.configuration import Configuration
+from support import constants 
 
 
 class TestStrategiesMACDCrossover(unittest.TestCase):
@@ -22,94 +24,18 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         Constructor Tests
     '''
 
+    configuration = Configuration.from_local_config(constants.STRATEGY_CONFIG_FILE_NAME)
+
     ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
     ticker_list = TickerList.from_local_file(ticker_file_path)
 
-    def test_init_no_config(self):
-        with patch('support.constants.CONFIG_FILE_NAME', "./config/does_not_exist.ini"):
-            with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(self.ticker_list)
-
-    def test_init_empty_config(self):
-        with patch('support.constants.CONFIG_FILE_NAME', "./test/config-unittest-bad/empty-test-config.ini"):
-            with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(self.ticker_list)
-
     def test_init_incorrect_config(self):
-        with patch('support.constants.CONFIG_FILE_NAME', "./test/config-unittest-bad/bad-test-config.ini"):
+        with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/"):
+            bad_config = Configuration.from_local_config("bad-test-config.ini")
             with self.assertRaises(ValidationError):
-                MACDCrossoverStrategy(self.ticker_list)
+                MACDCrossoverStrategy.from_configuration(bad_config, 'sa')
 
-    '''
-        _get_business_date tests
-    '''
-
-    def test_get_business_date_before_market_open(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T06:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            self.assertEqual(macd_strategy._get_business_date(
-                0, 0), datetime(2020, 6, 9))
-
-    def test_get_business_date_during_market_hours(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T15:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            self.assertEqual(macd_strategy._get_business_date(
-                0, 0), datetime(2020, 6, 9))
-
-    def test_get_business_date_after_market_close(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T23:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            self.assertEqual(macd_strategy._get_business_date(
-                0, 0), datetime(2020, 6, 10))
-
-    def test_get_business_date_with_hours_offset(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T23:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            self.assertEqual(macd_strategy._get_business_date(
-                0, 2), datetime(2020, 6, 10))
-
-    def test_get_business_date_with_days_offset(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T23:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            self.assertEqual(macd_strategy._get_business_date(
-                3, 0), datetime(2020, 6, 5))
-
-    def test_get_business_date_with_huge_days_offset(self):
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-        with patch.object(pd.Timestamp, 'utcnow',
-                          return_value=pd.Timestamp('2020-06-10T23:00:00+0000')):
-
-            macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
-
-            with self.assertRaises(ValidationError):
-                macd_strategy._get_business_date(100, 0)
-
+            
     '''
         _analyze_security tests
     '''
@@ -122,7 +48,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 100
         sma_list = [97, 99, 98]
@@ -141,7 +67,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 80
         sma_list = [97, 99, 98]
@@ -159,7 +85,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 100
         sma_list = [97, 99, 98]
@@ -178,7 +104,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 100
         sma_list = [97, 99, 98]
@@ -196,7 +122,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 100
         sma_list = [97, 99, 98]
@@ -214,7 +140,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
-            ticker_file_path, (datetime(2020, 6, 10), 50, 12, 26, 9))
+            self.ticker_list, datetime(2020, 6, 10), 50, 12, 26, 9)
 
         current_price = 100
         sma_list = [97, 99, 98]
@@ -279,7 +205,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
             macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 8), 50, 12, 26, 9))
+                self.ticker_list, datetime(2020, 6, 8), 50, 12, 26, 9)
 
             (current_price, sma_list, macd_lines, signal_lines) = macd_strategy._read_price_metrics('AAPL')
 
@@ -310,7 +236,7 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
             macd_strategy = MACDCrossoverStrategy(
-                ticker_file_path, (datetime(2020, 6, 8), 50, 12, 26, 9))
+                self.ticker_list, datetime(2020, 6, 8), 50, 12, 26, 9)
 
             with self.assertRaises(ValidationError):
                 macd_strategy._read_price_metrics('AAPL')

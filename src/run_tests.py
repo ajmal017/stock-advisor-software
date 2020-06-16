@@ -6,6 +6,7 @@ import unittest
 import logging
 from test.test_exceptions import TestExceptions
 from test.test_support_financial_cache import TestFinancialCache
+from test.test_support_configuration import TestConfiguration
 from test.test_support_util import TestSupportUtil
 from test.test_strategies_price_dispersion import TestStrategiesPriceDispersion
 from test.test_strategies_macd_crossover import TestStrategiesMACDCrossover
