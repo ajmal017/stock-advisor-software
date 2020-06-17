@@ -17,55 +17,7 @@ class TestServicesRecommendation(unittest.TestCase):
         Testing class for the services.recommendation_svc module
     """
 
-    '''
-        validate_environment tests
-    '''
-
-    def test_validate_environment_valid(self):
-        self.assertEqual(
-            recommendation_svc.validate_environment('test'), 'TEST')
-        self.assertEqual(
-            recommendation_svc.validate_environment('tEsT'), 'TEST')
-        self.assertEqual(recommendation_svc.validate_environment(
-            'production'), 'PRODUCTION')
-        self.assertEqual(recommendation_svc.validate_environment(
-            'pRodUCTION'), 'PRODUCTION')
-
-    def test_validate_environment_invalid(self):
-        with self.assertRaises(ValidationError):
-            recommendation_svc.validate_environment('invalid')
-    '''
-        validate_price_date tests
-    '''
-
-    def test_validate_price_date_invalid_date(self):
-        with self.assertRaises(ValidationError):
-            recommendation_svc.validate_price_date("invalid date format")
-
-    '''
-        validate_commandline_parameters tests
-    '''
-
-    def test_validate_commandline_parameters_valid(self):
-        current_price = datetime(2020, 3, 1)
-
-        recommendation_svc.validate_commandline_parameters(
-            '2020-02', current_price)
-
-    def test_validate_commandline_parameters_future_price_date(self):
-        current_price = datetime(2020, 3, 1)
-
-        with self.assertRaises(ValidationError):
-            recommendation_svc.validate_commandline_parameters(
-                '2020-03', current_price)
-
-    def test_validate_commandline_parameters_invalid_year(self):
-        current_price = datetime(2020, 3, 1)
-
-        with self.assertRaises(ValidationError):
-            recommendation_svc.validate_commandline_parameters(
-                '1900-03', current_price)
-
+    
     '''
         sns publishing tests
     '''

@@ -43,7 +43,7 @@ class Configuration():
         return cls()
 
     @classmethod
-    def from_s3(cls, config_filename: str, app_ns: str):
+    def try_from_s3(cls, config_filename: str, app_ns: str):
         '''
             Downloads a configuration file from S3 given the supplied file (object) name
             and application namespace used to read cloudformation exports.
