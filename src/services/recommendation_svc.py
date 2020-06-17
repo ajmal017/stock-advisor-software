@@ -7,6 +7,7 @@ be organized along with the service itself.
 import logging
 from connectors import aws_service_wrapper
 from support import constants
+import dateutil.parser as parser
 
 log = logging.getLogger()
 
