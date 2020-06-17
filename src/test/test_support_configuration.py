@@ -60,7 +60,7 @@ class TestConfiguration(unittest.TestCase):
             patch.object(os.path, 'isfile',
                             return_value=True):
 
-            Configuration.from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+            Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
 
             # assert that s3_upload_object method was called once
             self.assertEqual(mock_s3_upload_object.call_count, 1)
@@ -91,4 +91,4 @@ class TestConfiguration(unittest.TestCase):
                             return_value=False):
 
             with self.assertRaises(AWSError):
-                Configuration.from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+                Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')

@@ -32,7 +32,7 @@ def main():
 
         ticker_list = TickerList.from_local_file("%s/djia30.json" % (constants.APP_DATA_DIR))
 
-        #config = Configuration.from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+        #config = Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
         
         #macd_strategy = MACDCrossoverStrategy.from_configuration(config, 'sa')
         macd_strategy = MACDCrossoverStrategy(ticker_list, datetime(2020,6,10), 50, 12, 16, 9)
