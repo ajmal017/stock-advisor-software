@@ -117,7 +117,7 @@ def main():
     try:
 
         ticker_list = TickerList.from_local_file("%s/%s" %
-            (constants.TICKER_DATA_DIR, ticker_file_name))
+                                                 (constants.TICKER_DATA_DIR, ticker_file_name))
 
         backtest('2019-05')
         backtest('2019-06')

@@ -112,7 +112,7 @@ class TestServicePortfolioManager(unittest.TestCase):
     def test_update_portfolio_too_small(self):
         security_recommendation = SecurityRecommendationSet.from_dict(
             self.sr_dict)
-        portfolio = Portfolio()
+        portfolio = Portfolio(None)
         portfolio.create_empty_portfolio(security_recommendation)
 
         with self.assertRaises(ValidationError):
@@ -122,7 +122,7 @@ class TestServicePortfolioManager(unittest.TestCase):
     def test_update_portfolio_too_big(self):
         security_recommendation = SecurityRecommendationSet.from_dict(
             self.sr_dict)
-        portfolio = Portfolio()
+        portfolio = Portfolio(None)
         portfolio.create_empty_portfolio(security_recommendation)
 
         (new_p, updated) = portfolio_mgr_svc.update_portfolio(
@@ -140,7 +140,7 @@ class TestServicePortfolioManager(unittest.TestCase):
     def test_update_portfolio_empty_portfolio(self):
         security_recommendation = SecurityRecommendationSet.from_dict(
             self.sr_dict)
-        portfolio = Portfolio()
+        portfolio = Portfolio(None)
         portfolio.create_empty_portfolio(security_recommendation)
 
         (new_p, updated) = portfolio_mgr_svc.update_portfolio(
@@ -213,7 +213,7 @@ class TestServicePortfolioManager(unittest.TestCase):
 
         security_recommendation = SecurityRecommendationSet.from_dict(
             self.sr_dict)
-        portfolio = Portfolio()
+        portfolio = Portfolio(None)
         portfolio.create_empty_portfolio(security_recommendation)
         (new_p, updated) = portfolio_mgr_svc.update_portfolio(
             portfolio, security_recommendation, 1)

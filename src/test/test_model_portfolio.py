@@ -155,7 +155,7 @@ class TestPortfolio(unittest.TestCase):
                 self.sr_dict)
 
             with self.assertRaises(DataError):
-                portfolio = Portfolio()
+                portfolio = Portfolio(None)
                 portfolio.create_empty_portfolio(recommendation_set)
 
     def test_create_empty_portfolio_invalid_intrinio_response(self):
@@ -166,7 +166,7 @@ class TestPortfolio(unittest.TestCase):
                 self.sr_dict)
 
             with self.assertRaises(ValidationError):
-                portfolio = Portfolio()
+                portfolio = Portfolio(None)
                 portfolio.create_empty_portfolio(recommendation_set)
 
     def test_create_empty_portfolio_valid(self):
@@ -176,7 +176,7 @@ class TestPortfolio(unittest.TestCase):
             recommendation_set = SecurityRecommendationSet.from_dict(
                 self.sr_dict)
 
-            portfolio = Portfolio()
+            portfolio = Portfolio(None)
             portfolio.create_empty_portfolio(recommendation_set)
 
     def test_portfolio_empty(self):
@@ -186,7 +186,7 @@ class TestPortfolio(unittest.TestCase):
             recommendation_set = SecurityRecommendationSet.from_dict(
                 self.sr_dict)
 
-            portfolio = Portfolio()
+            portfolio = Portfolio(None)
             portfolio.create_empty_portfolio(recommendation_set)
 
             self.assertTrue(portfolio.is_empty())
@@ -198,7 +198,7 @@ class TestPortfolio(unittest.TestCase):
             recommendation_set = SecurityRecommendationSet.from_dict(
                 self.sr_dict)
 
-            portfolio = Portfolio()
+            portfolio = Portfolio(None)
             portfolio.create_empty_portfolio(recommendation_set)
 
             portfolio.model['current_portfolio'] = {

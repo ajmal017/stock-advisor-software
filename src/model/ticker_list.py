@@ -37,8 +37,10 @@ class TickerList(BaseModel):
     }
 
     model_s3_folder_prefix = constants.S3_TICKER_FILE_FOLDER_PREFIX
-
     model_name = "TickerList"
+
+    def __init__(self, model_dict: dict):
+        super().__init__(model_dict)
 
     @classmethod
     def try_from_s3(cls, app_ns: str, ticker_file_name: str):
@@ -49,16 +51,15 @@ class TickerList(BaseModel):
             and upload it to the same bucket. This is done to eliminate the need to
             pre-populate S3 with any data when the application is first installed.
         '''
-        cls.model_s3_object_name = ticker_file_name
 
         try:
-            return cls.from_s3(app_ns)
+            return cls.from_s3(app_ns, ticker_file_name)
         except AWSError as awe:
             if awe.resource_not_found():
                 log.debug("File not found in S3. Looking for local alternatives")
 
                 s3_object_path = "%s/%s" % (cls.model_s3_folder_prefix,
-                                            cls.model_s3_object_name)
+                                            ticker_file_name)
 
                 log.debug(
                     "Reading S3 Data Bucket location from CloudFormation Exports")
@@ -72,6 +73,7 @@ class TickerList(BaseModel):
                 if os.path.isfile(local_ticker_path):
                     log.debug("Attempting to upload %s --> s3://%s/%s" %
                               (local_ticker_path, s3_data_bucket_name, s3_object_path))
+
                     aws_service_wrapper.s3_upload_object(
                         local_ticker_path, s3_data_bucket_name, s3_object_path)
 

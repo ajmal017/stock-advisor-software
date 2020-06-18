@@ -16,7 +16,6 @@ class TestConfiguration(unittest.TestCase):
         Testing class for the support.configuration
     """
 
-
     '''
         from_local_config tests
     '''
@@ -30,65 +29,68 @@ class TestConfiguration(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 Configuration.from_local_config("empty-test-config.ini")
 
-
     '''
         from_s3 tests
     '''
+
     def test_from_s3_bucket_exception_upload_local_file(self):
         '''
             Tests that if the file was not found in s3, and
             a local alternative is found, it will self heal by
             restoring the s3 file
         '''
-        
-        configuration = Configuration.from_local_config(constants.STRATEGY_CONFIG_FILE_NAME)
+
+        configuration = Configuration.from_local_config(
+            constants.STRATEGY_CONFIG_FILE_NAME)
 
         with patch.object(Configuration, 'from_local_config',
-                            return_value=configuration), \
+                          return_value=configuration), \
             patch.object(aws_service_wrapper, 'cf_list_exports',
-                            return_value={
-                                constants.s3_data_bucket_export_name('sa'): "test-bucket"
-                            }),\
+                         return_value={
+                             constants.s3_data_bucket_export_name('sa'): "test-bucket"
+                         }),\
             patch.object(aws_service_wrapper, 's3_download_object',
-                            side_effect=AWSError(
-                                "test", Exception(
-                                    "An error occurred (404) when calling the HeadObject operation: Not Found")
-                            )
-                            ),\
+                         side_effect=AWSError(
+                             "test", Exception(
+                                 "An error occurred (404) when calling the HeadObject operation: Not Found")
+                         )
+                         ),\
             patch.object(aws_service_wrapper, 's3_upload_object',
-                            return_value=None) as mock_s3_upload_object,\
+                         return_value=None) as mock_s3_upload_object,\
             patch.object(os.path, 'isfile',
-                            return_value=True):
+                         return_value=True):
 
-            Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+            Configuration.try_from_s3(
+                constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
 
             # assert that s3_upload_object method was called once
             self.assertEqual(mock_s3_upload_object.call_count, 1)
 
-    
     def test_from_s3_bucket_exception_no_local_file(self):
         '''
             Tests that if the file was not found in s3, and
             a local no alternative is found, an exception will be
             thrown
         '''
-        
-        configuration = Configuration.from_local_config(constants.STRATEGY_CONFIG_FILE_NAME)
+
+        configuration = Configuration.from_local_config(
+            constants.STRATEGY_CONFIG_FILE_NAME)
 
         with patch.object(Configuration, 'from_local_config',
-                            return_value=configuration), \
+                          return_value=configuration), \
             patch.object(aws_service_wrapper, 'cf_list_exports',
-                            return_value={
-                                constants.s3_data_bucket_export_name('sa'): "test-bucket"
-                            }),\
+                         return_value={
+                             constants.s3_data_bucket_export_name('sa'): "test-bucket"
+                         }),\
             patch.object(aws_service_wrapper, 's3_download_object',
-                            side_effect=AWSError(
-                                "test", Exception(
-                                    "An error occurred (404) when calling the HeadObject operation: Not Found")
-                            )
-                            ),\
+                         side_effect=AWSError(
+                             "test", Exception(
+                                 "An error occurred (404) when calling the HeadObject operation: Not Found")
+                         )
+                         ),\
             patch.object(os.path, 'isfile',
-                            return_value=False):
+                         return_value=False):
 
             with self.assertRaises(AWSError):
-                Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+                Configuration.try_from_s3(
+                    constants.STRATEGY_CONFIG_FILE_NAME, 'sa')

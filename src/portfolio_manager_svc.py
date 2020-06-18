@@ -75,7 +75,7 @@ def main():
 
         if current_portfolio is None:
             log.info("Creating new portfolio")
-            current_portfolio = Portfolio()
+            current_portfolio = Portfolio(None)
             current_portfolio.create_empty_portfolio(security_recommendation)
         else:
             log.info("Repricing portfolio")
@@ -115,7 +115,7 @@ def main():
                  util.format_dict(updated_portfolio.to_dict()))
 
         log.info("Saving updated portfolio")
-        updated_portfolio.save_to_s3(app_ns)
+        updated_portfolio.save_to_s3(app_ns, constants.S3_RECOMMENDATION_SET_OBJECT_NAME)
 
         portfolio_mgr_svc.publish_current_returns(
             updated_portfolio, updated, app_ns)

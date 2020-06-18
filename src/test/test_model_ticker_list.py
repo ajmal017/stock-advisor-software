@@ -37,7 +37,7 @@ class TestModelTickerList(unittest.TestCase):
         )
 
         with patch.object(TickerList, 'from_local_file',
-                return_value=ticker_list), \
+                          return_value=ticker_list), \
             patch.object(aws_service_wrapper, 'cf_list_exports',
                          return_value={
                              constants.s3_data_bucket_export_name('sa'): "test-bucket"
@@ -66,9 +66,9 @@ class TestModelTickerList(unittest.TestCase):
         '''
 
         with patch.object(aws_service_wrapper, 'cf_list_exports',
-                         return_value={
-                             constants.s3_data_bucket_export_name('sa'): "test-bucket"
-                         }),\
+                          return_value={
+                              constants.s3_data_bucket_export_name('sa'): "test-bucket"
+                          }),\
             patch.object(TickerList, 'from_s3',
                          side_effect=AWSError(
                              "test", Exception(
@@ -82,7 +82,6 @@ class TestModelTickerList(unittest.TestCase):
 
             with self.assertRaises(AWSError):
                 TickerList.try_from_s3('sa', 'ticker-file')
-
 
     def test_ticker_list_matches(self):
         ticker_list = TickerList.from_dict(

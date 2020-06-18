@@ -34,6 +34,7 @@ def s3_data_bucket_export_name(app_ns):
 S3_TICKER_FILE_FOLDER_PREFIX = "ticker-files"
 S3_RECOMMENDATION_SET_FOLDER_PREFIX = "base-recommendations"
 S3_RECOMMENDATION_SET_OBJECT_NAME = "security-recommendation-set.json"
+S3_MACD_CROSSOVER_RECOMMENDATION_SET_OBJECT_NAME = "macd-crossover-recommendation-set.json"
 S3_PORTFOLIO_FOLDER_PREFIX = "portfolios"
 S3_PORTFOLIO_OBJECT_NAME = "current-portfolio.json"
 S3_FINANCIAL_CACHE_FOLDER_PREFIX = "financial-cache"

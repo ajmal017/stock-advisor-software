@@ -6,7 +6,7 @@ import pandas as pd
 import dateutil.parser as parser
 from datetime import datetime, timedelta
 from collections import OrderedDict
-from support import util
+from support import util, constants
 from strategies.base_strategy import BaseStrategy
 from strategies import calculator
 from model.recommendation_set import SecurityRecommendationSet
@@ -34,6 +34,8 @@ class MACDCrossoverStrategy(BaseStrategy):
 
     STRATEGY_NAME = "MACD_CROSSOVER"
     CONFIG_SECTION = "macd_conversion_strategy"
+    S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_MACD_CROSSOVER_RECOMMENDATION_SET_OBJECT_NAME
+
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
 
     def __init__(self, ticker_list: object, analysis_date: datetime, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
@@ -55,7 +57,7 @@ class MACDCrossoverStrategy(BaseStrategy):
             macd_signal_period: int
                 MACD signal period in days, e.g. 9
         '''
-        
+
         self.ticker_list = ticker_list
         self.analysis_date = analysis_date
         self.sma_period = sma_period
@@ -69,7 +71,7 @@ class MACDCrossoverStrategy(BaseStrategy):
             See BaseStrategy.from_configuration for documentation
         '''
 
-        analysis_date = util.get_business_date(4, 0)
+        analysis_date = util.get_business_date(2, 0)
 
         try:
             config_params = dict(configuration.config[cls.CONFIG_SECTION])

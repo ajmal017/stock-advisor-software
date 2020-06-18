@@ -34,14 +34,14 @@ def get_service_inputs(app_ns: str):
     '''
 
     log.info("Loading latest recommendations")
-    recommendation_set = SecurityRecommendationSet.from_s3(app_ns)
+    recommendation_set = SecurityRecommendationSet.from_s3(app_ns, constants.S3_RECOMMENDATION_SET_OBJECT_NAME)
 
     if not recommendation_set.is_current(datetime.now()):
         raise ValidationError("Current recommendation set is not valid", None)
 
     try:
         log.info("Loading current portfolio")
-        pfolio = Portfolio.from_s3(app_ns)
+        pfolio = Portfolio.from_s3(app_ns, constants.S3_PORTFOLIO_OBJECT_NAME)
     except AWSError as e:
         if e.resource_not_found():
             pfolio = None
@@ -114,7 +114,7 @@ def update_portfolio(current_portfolio: object, recommendation_set: object, port
 
     elif pfolio_set_id != rec_set_id:
         log.info("Recommendation set has changed, rebalancing portfolio")
-        updated_portfolio = Portfolio()
+        updated_portfolio = Portfolio(None)
         updated_portfolio.create_empty_portfolio(recommendation_set)
         select_random_portfolio(portfolio_size)
         updated = True

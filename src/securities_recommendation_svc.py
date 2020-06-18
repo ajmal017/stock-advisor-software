@@ -21,7 +21,6 @@ from support import constants, logging_definition
 from support.configuration import Configuration
 
 
-
 log = logging.getLogger()
 
 logging.getLogger('boto3').setLevel(logging.WARN)
@@ -57,12 +56,11 @@ def parse_params():
     log.info("Parsing command line parameters")
 
     parser = argparse.ArgumentParser(description=description)
-    
+
     parser.add_argument(
         "-app_namespace", help="Application namespace used to identify AWS resources", type=str, required=True)
 
     args = parser.parse_args()
-
     app_ns = args.app_namespace
 
     return app_ns
@@ -73,14 +71,8 @@ def main():
         Main function for this script
     """
     try:
-        app_ns = parse_params()
-
-        configuration = Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, app_ns)
-
-        strategies = [
-            PriceDispersionStrategy.from_configuration(configuration, app_ns),
-            MACDCrossoverStrategy.from_configuration(configuration, app_ns)
-        ]
+        #app_ns = parse_params()
+        app_ns = 'sa'
 
         log.info("Parameters:")
         log.info("Application Namespace: %s" % app_ns)
@@ -90,39 +82,40 @@ def main():
         connector_test.test_aws_connectivity()
         connector_test.test_intrinio_connectivity()
 
-        log.info("Reading ticker file from s3 bucket")
-        ticker_list = TickerList.try_from_s3(
-            app_ns, ticker_file_name)
+        configuration = Configuration.try_from_s3(
+            constants.STRATEGY_CONFIG_FILE_NAME, app_ns)
 
-        log.info("Loading existing recommendation set from S3")
-        recommendation_set = None
+        strategies = [
+            PriceDispersionStrategy.from_configuration(configuration, app_ns),
+            MACDCrossoverStrategy.from_configuration(configuration, app_ns)
+        ]
 
-        try:
-            recommendation_set = SecurityRecommendationSet.from_s3(app_ns)
-        except AWSError as awe:
-            if not awe.resource_not_found():
-                raise awe
-            log.info("No recommendation set was found in S3.")
+        for strategy in strategies:
+            recommendation_set = None
 
-        if recommendation_set == None  \
-                or not recommendation_set.is_current(datetime.now()):
+            try:
+                recommendation_set = SecurityRecommendationSet.from_s3(
+                    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
+            except AWSError as awe:
+                if not awe.resource_not_found():
+                    raise awe
+                log.info("No recommendation set was found in S3.")
 
-            log.info("Performing Recommendation Algorithm")
-            strategy = PriceDispersionStrategy(
-                ticker_list, analysis_period, output_size)
+            if recommendation_set == None  \
+                    or not recommendation_set.is_current(datetime.now()):
 
-            strategy.generate_recommendation()
-            recommendation_set = strategy.recommendation_set
-            display_calculation_dataframe(
-                analysis_period, strategy, current_price_date)
+                strategy.generate_recommendation()
+                strategy.display_results()
 
-            #recommendation_set.save_to_s3(app_ns)
-            #recommendation_svc.notify_new_recommendation(
-            #    recommendation_set, app_ns)
-        else:
-            log.info(
-                "Recommendation set is still valid. There is nothing to do")
+                recommendation_set = strategy.recommendation_set
 
+                recommendation_set.save_to_s3(
+                    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
+                recommendation_svc.notify_new_recommendation(
+                    recommendation_set, app_ns)
+            else:
+                log.info(
+                    "Recommendation set is still valid. There is nothing to do")
     except Exception as e:
         stack_trace = traceback.format_exc()
         log.error("Could run script, because: %s" % (str(e)))

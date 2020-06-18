@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from connectors import intrinio_data, intrinio_util
 import logging
-from support import util
+from support import util, constants
 from exception.exceptions import BaseError, ValidationError, DataError
 from model.recommendation_set import SecurityRecommendationSet
 from model.ticker_list import TickerList
@@ -13,6 +13,7 @@ from strategies.base_strategy import BaseStrategy
 from strategies import calculator
 
 log = logging.getLogger()
+
 
 class PriceDispersionStrategy(BaseStrategy):
     """
@@ -57,6 +58,7 @@ class PriceDispersionStrategy(BaseStrategy):
 
     STRATEGY_NAME = "PRICE_DISPERSION"
     CONFIG_SECTION = "price_dispersion_strategy"
+    S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_RECOMMENDATION_SET_OBJECT_NAME
 
     def __init__(self, ticker_list: list, analysis_period: str, current_price_date: datetime, output_size: int):
         """
@@ -124,12 +126,12 @@ class PriceDispersionStrategy(BaseStrategy):
                 "Could not read MACD Crossover Strategy configuration parameters", e)
 
         ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
-        analysis_period = (pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
+        analysis_period = (
+            pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
 
         current_price_date = util.get_business_date(4, 0)
 
         return cls(ticker_list, analysis_period, current_price_date, output_size)
-
 
     def _load_financial_data(self):
         """
@@ -260,7 +262,6 @@ class PriceDispersionStrategy(BaseStrategy):
         self.recommendation_set = SecurityRecommendationSet.from_parameters(datetime.now(), valid_from, valid_to, self.analysis_end_date,
                                                                             self.STRATEGY_NAME, "US Equities", priced_securities)
 
-
     def display_results(self):
         '''
         '''
@@ -276,13 +277,13 @@ class PriceDispersionStrategy(BaseStrategy):
         log.info("")
 
         log.info("Recommended Securities Return: %.2f%%" %
-                (recommendation_dataframe['actual_return'].mean() * 100))
+                 (recommendation_dataframe['actual_return'].mean() * 100))
         log.info("Average Return: %.2f%%" %
-                (raw_dataframe['actual_return'].mean() * 100))
+                 (raw_dataframe['actual_return'].mean() * 100))
         log.info("")
         log.info("Analysis Period - %s, Actual Returns as of: %s" %
-                (self.analysis_period, datetime.strftime(self.current_price_date, '%Y/%m/%d')))
+                 (self.analysis_period, datetime.strftime(self.current_price_date, '%Y/%m/%d')))
 
         # Using the logger will mess up the header of this table
         print(raw_dataframe[['analysis_period', 'ticker', 'dispersion_stdev_pct',
-                            'analyst_expected_return', 'actual_return', 'decile']].to_string(index=False))
+                             'analyst_expected_return', 'actual_return', 'decile']].to_string(index=False))

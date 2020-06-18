@@ -28,7 +28,8 @@ class Configuration():
         cls.config = configparser.ConfigParser(allow_no_value=True)
 
         try:
-            cls.config_file = open("%s%s" % (constants.CONFIG_FILE_PATH, config_filename))
+            cls.config_file = open(
+                "%s%s" % (constants.CONFIG_FILE_PATH, config_filename))
             cls.config.read_file(cls.config_file)
         except Exception as e:
             raise ValidationError("Could not load Configuration", e)
@@ -51,28 +52,30 @@ class Configuration():
             If the file does not exist use the local one and upload it to S3
         '''
         try:
-            s3_data_bucket_name=aws_service_wrapper.cf_read_export_value(
-            constants.s3_data_bucket_export_name(app_ns))
+            s3_data_bucket_name = aws_service_wrapper.cf_read_export_value(
+                constants.s3_data_bucket_export_name(app_ns))
 
-            s3_object_name="%s/%s" % (constants.S3_CONFIG_OLDER_PREFIX,
-                                    config_filename)
+            s3_object_name = "%s/%s" % (constants.S3_CONFIG_OLDER_PREFIX,
+                                        config_filename)
 
-            dest_filename="%s.s3download" % config_filename
-            dest_path="%s%s" % (constants.CONFIG_FILE_PATH,
-                                dest_filename)
+            dest_filename = "%s.s3download" % config_filename
+            dest_path = "%s%s" % (constants.CONFIG_FILE_PATH,
+                                  dest_filename)
 
             log.info("Downloading Configuration File: s3://%s/%s --> %s" %
-                    (s3_data_bucket_name, s3_object_name, dest_path))
+                     (s3_data_bucket_name, s3_object_name, dest_path))
             aws_service_wrapper.s3_download_object(
                 s3_data_bucket_name, s3_object_name, dest_path)
 
             return cls.from_local_config(dest_filename)
         except AWSError as awe:
             if awe.resource_not_found():
-                log.debug("Configuration not found in S3. Looking for local alternatives")
-                
-                # Attempt to upload a local copy of the configuration if it exists
-                local_configuration_path="%s%s" % (
+                log.debug(
+                    "Configuration not found in S3. Looking for local alternatives")
+
+                # Attempt to upload a local copy of the configuration if it
+                # exists
+                local_configuration_path = "%s%s" % (
                     constants.CONFIG_FILE_PATH, config_filename)
 
                 if os.path.isfile(local_configuration_path):

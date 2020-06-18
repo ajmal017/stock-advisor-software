@@ -100,12 +100,11 @@ class Portfolio(BaseModel):
     }
 
     model_s3_folder_prefix = constants.S3_PORTFOLIO_FOLDER_PREFIX
-    model_s3_object_name = constants.S3_PORTFOLIO_OBJECT_NAME
 
     model_name = "Portfolio"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, model_dict: dict):
+        super().__init__(model_dict)
 
     def is_empty(self):
         '''

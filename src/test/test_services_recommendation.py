@@ -17,7 +17,6 @@ class TestServicesRecommendation(unittest.TestCase):
         Testing class for the services.recommendation_svc module
     """
 
-    
     '''
         sns publishing tests
     '''

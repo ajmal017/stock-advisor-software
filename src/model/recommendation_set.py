@@ -70,12 +70,10 @@ class SecurityRecommendationSet(BaseModel):
     }
 
     model_s3_folder_prefix = constants.S3_RECOMMENDATION_SET_FOLDER_PREFIX
-    model_s3_object_name = constants.S3_RECOMMENDATION_SET_OBJECT_NAME
-
     model_name = "Security Recommendation Set"
 
-    def __init__(self):
-        pass
+    def __init__(self, model_dict: dict):
+        super().__init__(model_dict)
 
     @classmethod
     def from_parameters(cls, creation_date: datetime, valid_from: datetime,

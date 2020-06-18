@@ -18,12 +18,15 @@ class BaseStrategy(ABC):
             STRATEGY_NAME: The display name associated with this strategy
             CONFIG_SECTION: The name of the configuration section in
                 /config/strategies.ini
+            S3_RECOMMENDATION_SET_OBJECT_NAME: The S3 object name used to store
+                the recommendation set.
 
     '''
 
     STRATEGY_NAME = ""
     CONFIG_SECTION = ""
-    
+    S3_RECOMMENDATION_SET_OBJECT_NAME = ""
+
     @classmethod
     @abstractmethod
     def from_configuration(cls, configuration: object, app_ns: str):
@@ -42,7 +45,7 @@ class BaseStrategy(ABC):
 
         '''
         pass
-    
+
     @abstractmethod
     def generate_recommendation(self):
         '''
