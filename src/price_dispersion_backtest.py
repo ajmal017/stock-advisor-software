@@ -81,7 +81,7 @@ def main():
         data_end_date = intrinio_util.get_month_period_range(period)[1]
 
         strategy = PriceDispersionStrategy(
-            ticker_list, period, output_size)
+            ticker_list, period, None, output_size)
         strategy.generate_recommendation()
 
         date_1m = data_end_date + timedelta(days=30)

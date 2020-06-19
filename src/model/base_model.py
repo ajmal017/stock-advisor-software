@@ -6,12 +6,10 @@ import json
 from copy import deepcopy
 import logging
 from datetime import datetime
-import pytz
 from jsonschema import validate
 from exception.exceptions import ValidationError
 from connectors import aws_service_wrapper
-from support import constants
-from support import util
+from support import constants, util
 
 log = logging.getLogger()
 
