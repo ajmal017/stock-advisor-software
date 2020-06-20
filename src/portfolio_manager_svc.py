@@ -115,7 +115,8 @@ def main():
                  util.format_dict(updated_portfolio.to_dict()))
 
         log.info("Saving updated portfolio")
-        updated_portfolio.save_to_s3(app_ns, constants.S3_RECOMMENDATION_SET_OBJECT_NAME)
+        updated_portfolio.save_to_s3(
+            app_ns, constants.S3_RECOMMENDATION_SET_OBJECT_NAME)
 
         portfolio_mgr_svc.publish_current_returns(
             updated_portfolio, updated, app_ns)

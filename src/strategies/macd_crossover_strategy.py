@@ -71,7 +71,8 @@ class MACDCrossoverStrategy(BaseStrategy):
             See BaseStrategy.from_configuration for documentation
         '''
 
-        analysis_date = util.get_business_date(2, 0)
+        analysis_date = util.get_business_date(
+            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
 
         try:
             config_params = dict(configuration.config[cls.CONFIG_SECTION])
@@ -254,8 +255,12 @@ class MACDCrossoverStrategy(BaseStrategy):
         self.raw_dataframe = self.raw_dataframe.sort_values(
             ['recommendation', 'divergence'], ascending=(True, False))
 
+        valid_from = datetime(self.analysis_date.year, self.analysis_date.month,
+                              self.analysis_date.day, 0, 0, 0) + timedelta(days=constants.BUSINESS_DATE_DAYS_LOOKBACK)
+        valid_to = valid_from + timedelta(days=2) - timedelta(minutes=1)
+
         self.recommendation_set = SecurityRecommendationSet.from_parameters(
-            datetime.now(), datetime.now(), datetime.now(), datetime.now(), self.STRATEGY_NAME,
+            datetime.now(), valid_from, valid_to, self.analysis_date, self.STRATEGY_NAME,
             "US_EQUITIES", recommended_securities
         )
 

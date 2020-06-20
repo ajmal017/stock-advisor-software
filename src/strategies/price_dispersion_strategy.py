@@ -102,7 +102,8 @@ class PriceDispersionStrategy(BaseStrategy):
         self.output_size = output_size
 
         if (current_price_date == None):
-            self.current_price_date = util.get_business_date(4, 0)
+            self.current_price_date = util.get_business_date(
+                constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
         else:
             self.current_price_date = current_price_date
 
@@ -129,7 +130,8 @@ class PriceDispersionStrategy(BaseStrategy):
         analysis_period = (
             pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
 
-        current_price_date = util.get_business_date(4, 0)
+        current_price_date = util.get_business_date(
+            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
 
         return cls(ticker_list, analysis_period, current_price_date, output_size)
 

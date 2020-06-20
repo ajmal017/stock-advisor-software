@@ -58,7 +58,7 @@ def test_api_endpoint():
 
     if not response.ok:
         raise DataError(
-            "Invalid response from Intrinio Endpoint", Exception(r.text))
+            "Invalid response from Intrinio Endpoint", Exception(response.text))
 
 
 '''

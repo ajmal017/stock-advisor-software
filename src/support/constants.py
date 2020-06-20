@@ -4,6 +4,12 @@ This module contains application constants and static configuration
 """
 
 '''
+    Parameters
+'''
+BUSINESS_DATE_DAYS_LOOKBACK = 2
+BUSINESS_DATE_HOURS_LOOKBACK = 0
+
+'''
     filesystem constants
 '''
 

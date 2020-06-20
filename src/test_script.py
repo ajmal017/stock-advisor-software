@@ -33,16 +33,17 @@ def main():
         ticker_list = TickerList.from_local_file(
             "%s/djia30.json" % (constants.APP_DATA_DIR))
 
-        config = Configuration.try_from_s3(constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
+        config = Configuration.try_from_s3(
+            constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
 
         macd_strategy = MACDCrossoverStrategy.from_configuration(config, 'sa')
-        #macd_strategy = MACDCrossoverStrategy(
+        # macd_strategy = MACDCrossoverStrategy(
         #    ticker_list, datetime(2020, 6, 12), 50, 12, 16, 9)
         macd_strategy.generate_recommendation()
         macd_strategy.display_results()
 
         pd_strategy = PriceDispersionStrategy.from_configuration(config, 'sa')
-        #pd_strategy = PriceDispersionStrategy(
+        # pd_strategy = PriceDispersionStrategy(
         #    ticker_list, '2020-05', datetime(2020, 6, 12), 3)
         pd_strategy.generate_recommendation()
         pd_strategy.display_results()

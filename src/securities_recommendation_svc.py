@@ -81,9 +81,12 @@ def main():
         connector_test.test_aws_connectivity()
         connector_test.test_intrinio_connectivity()
 
+        log.info('Loading Strategy Configuration "%s" from S3' %
+                 constants.STRATEGY_CONFIG_FILE_NAME)
         configuration = Configuration.try_from_s3(
             constants.STRATEGY_CONFIG_FILE_NAME, app_ns)
 
+        log.info("Initalizing Trading Strategies")
         strategies = [
             PriceDispersionStrategy.from_configuration(configuration, app_ns),
             MACDCrossoverStrategy.from_configuration(configuration, app_ns)
@@ -91,8 +94,8 @@ def main():
 
         for strategy in strategies:
             recommendation_set = None
-
             try:
+                log.info("Executing %s strategy" % strategy.STRATEGY_NAME)
                 recommendation_set = SecurityRecommendationSet.from_s3(
                     app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
             except AWSError as awe:
@@ -108,10 +111,10 @@ def main():
 
                 recommendation_set = strategy.recommendation_set
 
-                recommendation_set.save_to_s3(
-                    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
-                recommendation_svc.notify_new_recommendation(
-                    recommendation_set, app_ns)
+                # recommendation_set.save_to_s3(
+                #    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
+                # recommendation_svc.notify_new_recommendation(
+                #    recommendation_set, app_ns)
             else:
                 log.info(
                     "Recommendation set is still valid. There is nothing to do")

@@ -94,10 +94,12 @@ def get_business_date(days_offset: int, hours_offset: int):
         pd.Timedelta(timedelta(days=days_offset, hours=hours_offset))
     market_calendar = nyse_cal.schedule(
         utcnow - timedelta(days=10), utcnow + timedelta(days=10))
+    print(market_calendar)
     market_calendar = market_calendar[market_calendar.market_close < (
         utcnow_with_delta)]
+    print(market_calendar)
 
     try:
-        return market_calendar.index[-1]
+        return market_calendar.index[-1].to_pydatetime()
     except Exception as e:
         raise ValidationError("Could not retrieve Business Date", e)
