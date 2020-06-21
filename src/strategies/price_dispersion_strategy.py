@@ -58,7 +58,7 @@ class PriceDispersionStrategy(BaseStrategy):
 
     STRATEGY_NAME = "PRICE_DISPERSION"
     CONFIG_SECTION = "price_dispersion_strategy"
-    S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_RECOMMENDATION_SET_OBJECT_NAME
+    S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_PRICE_DISPERSION_RECOMMENDATION_SET_OBJECT_NAME
 
     def __init__(self, ticker_list: list, analysis_period: str, current_price_date: datetime, output_size: int):
         """

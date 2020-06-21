@@ -111,8 +111,8 @@ def main():
 
                 recommendation_set = strategy.recommendation_set
 
-                # recommendation_set.save_to_s3(
-                #    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
+                recommendation_set.save_to_s3(
+                    app_ns, strategy.S3_RECOMMENDATION_SET_OBJECT_NAME)
                 # recommendation_svc.notify_new_recommendation(
                 #    recommendation_set, app_ns)
             else:
@@ -123,8 +123,8 @@ def main():
         log.error("Could run script, because: %s" % (str(e)))
         log.error(stack_trace)
 
-        aws_service_wrapper.notify_error(e, "Securities Recommendation Service",
-                                            stack_trace, app_ns)
+        # aws_service_wrapper.notify_error(e, "Securities Recommendation Service",
+        #                                    stack_trace, app_ns)
 
 if __name__ == "__main__":
     main()

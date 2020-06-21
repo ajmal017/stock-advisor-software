@@ -34,15 +34,15 @@ class SecurityRecommendationSet(BaseModel):
             },
             "valid_from": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
             },
             "valid_to": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
             },
             "price_date": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
             },
             "strategy_name": {
                 "type": "string",
@@ -100,9 +100,9 @@ class SecurityRecommendationSet(BaseModel):
             cls.model = {
                 "set_id": str(uuid.uuid1()),
                 "creation_date": util.date_to_iso_utc_string(creation_date),
-                "valid_from": util.date_to_iso_utc_string(valid_from),
-                "valid_to": util.date_to_iso_utc_string(valid_to),
-                "price_date": util.date_to_iso_utc_string(price_date),
+                "valid_from": util.date_to_iso_string(valid_from),
+                "valid_to": util.date_to_iso_string(valid_to),
+                "price_date": util.date_to_iso_string(price_date),
                 "strategy_name": strategy_name,
                 "security_type": security_type,
                 "securities_set": []
@@ -128,5 +128,6 @@ class SecurityRecommendationSet(BaseModel):
 
         valid_to = parser.parse(
             self.model['valid_to'])
+        valid_to = valid_to.replace(hour=23, minute=59, second=59)
 
         return valid_from.timestamp() <= current_date.timestamp() <= valid_to.timestamp()

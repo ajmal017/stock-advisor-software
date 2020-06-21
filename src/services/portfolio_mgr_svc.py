@@ -35,7 +35,7 @@ def get_service_inputs(app_ns: str):
 
     log.info("Loading latest recommendations")
     recommendation_set = SecurityRecommendationSet.from_s3(
-        app_ns, constants.S3_RECOMMENDATION_SET_OBJECT_NAME)
+        app_ns, constants.S3_PRICE_DISPERSION_RECOMMENDATION_SET_OBJECT_NAME)
 
     if not recommendation_set.is_current(datetime.now()):
         raise ValidationError("Current recommendation set is not valid", None)

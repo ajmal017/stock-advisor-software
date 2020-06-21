@@ -41,7 +41,7 @@ def date_to_iso_string(date: datetime):
         return "None"
 
     try:
-        return date.astimezone().isoformat()
+        return str(date.date())
     except Exception as e:
         raise ValidationError("Could not convert date to string", e)
 
@@ -93,13 +93,11 @@ def get_business_date(days_offset: int, hours_offset: int):
     utcnow_with_delta = utcnow - \
         pd.Timedelta(timedelta(days=days_offset, hours=hours_offset))
     market_calendar = nyse_cal.schedule(
-        utcnow - timedelta(days=10), utcnow + timedelta(days=10))
-    print(market_calendar)
+        utcnow - timedelta(days=10 + days_offset), utcnow + timedelta(days=10))
     market_calendar = market_calendar[market_calendar.market_close < (
         utcnow_with_delta)]
-    print(market_calendar)
 
     try:
-        return market_calendar.index[-1].to_pydatetime()
+        return market_calendar.index[-1].to_pydatetime().date()
     except Exception as e:
         raise ValidationError("Could not retrieve Business Date", e)
