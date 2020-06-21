@@ -3,11 +3,13 @@
 This module contains application constants and static configuration
 """
 
+from datetime import time
+
 '''
-    Parameters
+    business date constants
 '''
-BUSINESS_DATE_DAYS_LOOKBACK = 2
-BUSINESS_DATE_HOURS_LOOKBACK = 0
+BUSINESS_DATE_DAYS_LOOKBACK = -1
+BUSINESS_DATE_CUTOVER_TIME = time(4, 0, 0)
 
 '''
     filesystem constants

@@ -2,7 +2,7 @@
 """
 
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta, timezone
 from connectors import intrinio_data, intrinio_util
 import logging
 from support import util, constants
@@ -60,7 +60,7 @@ class PriceDispersionStrategy(BaseStrategy):
     CONFIG_SECTION = "price_dispersion_strategy"
     S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_PRICE_DISPERSION_RECOMMENDATION_SET_OBJECT_NAME
 
-    def __init__(self, ticker_list: list, analysis_period: str, current_price_date: datetime, output_size: int):
+    def __init__(self, ticker_list: list, analysis_period: str, current_price_date: date, output_size: int):
         """
             Initializes the strategy given the ticker list, analysis period
             and output size.
@@ -93,9 +93,9 @@ class PriceDispersionStrategy(BaseStrategy):
         (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_period_range(
             self.analysis_period)
 
-        if (self.analysis_end_date > datetime.now()):
+        if (self.analysis_end_date > date.today()):
             logging.debug("Setting analysis end date to 'today'")
-            self.analysis_end_date = datetime.now()
+            self.analysis_end_date = date.today()
 
         self.ticker_list = ticker_list
 
@@ -103,7 +103,7 @@ class PriceDispersionStrategy(BaseStrategy):
 
         if (current_price_date == None):
             self.current_price_date = util.get_business_date(
-                constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
+                constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
         else:
             self.current_price_date = current_price_date
 
@@ -128,10 +128,10 @@ class PriceDispersionStrategy(BaseStrategy):
 
         ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
         analysis_period = (
-            pd.Period(datetime.now(), 'M') - 1).strftime("%Y-%m")
+            pd.Period(date.today(), 'M') - 1).strftime("%Y-%m")
 
         current_price_date = util.get_business_date(
-            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
+            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
 
         return cls(ticker_list, analysis_period, current_price_date, output_size)
 
@@ -258,8 +258,11 @@ class PriceDispersionStrategy(BaseStrategy):
             priced_securities[row.ticker] = row.analysis_price
 
         # determine the recommendation valid date range
-        (valid_from, valid_to) = intrinio_util.get_month_period_range(
+        (valid_from_date, valid_to_date) = intrinio_util.get_month_period_range(
             self.analysis_period + 1)
+
+        valid_from = datetime(valid_from_date.year, valid_from_date.month, valid_from_date.day, 0, 0, 0, tzinfo=timezone.utc)
+        valid_to = datetime(valid_to_date.year, valid_to_date.month, valid_to_date.day, 0, 0, 0, tzinfo=timezone.utc)
 
         self.recommendation_set = SecurityRecommendationSet.from_parameters(datetime.now(), valid_from, valid_to, self.analysis_end_date,
                                                                             self.STRATEGY_NAME, "US Equities", priced_securities)
@@ -284,7 +287,7 @@ class PriceDispersionStrategy(BaseStrategy):
                  (raw_dataframe['actual_return'].mean() * 100))
         log.info("")
         log.info("Analysis Period - %s, Actual Returns as of: %s" %
-                 (self.analysis_period, datetime.strftime(self.current_price_date, '%Y/%m/%d')))
+                 (self.analysis_period, self.current_price_date))
 
         # Using the logger will mess up the header of this table
         print(raw_dataframe[['analysis_period', 'ticker', 'dispersion_stdev_pct',

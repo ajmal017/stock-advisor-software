@@ -259,7 +259,7 @@ class TestPortfolio(unittest.TestCase):
             self.assertEqual(round(portfolio.model["securities_set"][
                              0]["current_returns"], 2), 0.01)
 
-            self.assertEqual(portfolio.model["price_date"], util.date_to_iso_utc_string(
+            self.assertEqual(portfolio.model["price_date"], util.datetime_to_iso_utc_string(
                 parser.parse('2020-04-30')))
 
     def test_reprice_unfilled_order(self):
@@ -307,7 +307,7 @@ class TestPortfolio(unittest.TestCase):
             self.assertEqual(round(portfolio.model["securities_set"][
                              0]["current_returns"], 2), 0)
 
-            self.assertEqual(portfolio.model["price_date"], util.date_to_iso_utc_string(
+            self.assertEqual(portfolio.model["price_date"], util.datetime_to_iso_utc_string(
                 parser.parse('2020-04-30')))
 
     def test_get_position(self):

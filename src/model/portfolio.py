@@ -152,8 +152,8 @@ class Portfolio(BaseModel):
         self.model = {
             "portfolio_id": str(uuid.uuid1()),
             "set_id": recommendation_set.to_dict()['set_id'],
-            "creation_date": util.date_to_iso_utc_string(datetime.now()),
-            "price_date": util.date_to_iso_utc_string(price_date),
+            "creation_date": util.datetime_to_iso_utc_string(datetime.now()),
+            "price_date": util.datetime_to_iso_utc_string(price_date),
             "securities_set": securities_list
         }
 
@@ -192,7 +192,7 @@ class Portfolio(BaseModel):
             raise ValidationError(
                 "Could parse price date returned by Intrinio API", e)
 
-        self.model['price_date'] = util.date_to_iso_utc_string(price_date)
+        self.model['price_date'] = util.datetime_to_iso_utc_string(price_date)
         log.info("Repriced portfolio for date of %s" % str(price_date))
 
     def recalc_returns(self):

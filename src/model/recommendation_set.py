@@ -34,11 +34,11 @@ class SecurityRecommendationSet(BaseModel):
             },
             "valid_from": {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
             },
             "valid_to": {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
             },
             "price_date": {
                 "type": "string",
@@ -99,10 +99,10 @@ class SecurityRecommendationSet(BaseModel):
         try:
             cls.model = {
                 "set_id": str(uuid.uuid1()),
-                "creation_date": util.date_to_iso_utc_string(creation_date),
-                "valid_from": util.date_to_iso_string(valid_from),
-                "valid_to": util.date_to_iso_string(valid_to),
-                "price_date": util.date_to_iso_string(price_date),
+                "creation_date": util.datetime_to_iso_utc_string(creation_date),
+                "valid_from": util.datetime_to_iso_utc_string(valid_from),
+                "valid_to": util.datetime_to_iso_utc_string(valid_to),
+                "price_date": price_date.strftime("%Y-%m-%d"),
                 "strategy_name": strategy_name,
                 "security_type": security_type,
                 "securities_set": []

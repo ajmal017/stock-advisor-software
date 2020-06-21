@@ -3,8 +3,9 @@
 
 import logging
 import pandas as pd
+import pandas_market_calendars as mcal
 import dateutil.parser as parser
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 from collections import OrderedDict
 from support import util, constants
 from strategies.base_strategy import BaseStrategy
@@ -38,7 +39,7 @@ class MACDCrossoverStrategy(BaseStrategy):
 
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
 
-    def __init__(self, ticker_list: object, analysis_date: datetime, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
+    def __init__(self, ticker_list: object, analysis_date: date, sma_period: int, macd_fast_period: int, macd_slow_period: int, macd_signal_period: int):
         '''
             Initializes the strategy by supplying all parameters directly
 
@@ -46,7 +47,7 @@ class MACDCrossoverStrategy(BaseStrategy):
             ----------
             ticker_list: TickerList
                 TickerList object representing the input to the strategy
-            analysis_date: datetime
+            analysis_date: date
                 Analysis (price) date
             sma_period: int
                 The Simple Moving average perdiod in days, e.g. 50
@@ -72,7 +73,7 @@ class MACDCrossoverStrategy(BaseStrategy):
         '''
 
         analysis_date = util.get_business_date(
-            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_HOURS_LOOKBACK)
+            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
 
         try:
             config_params = dict(configuration.config[cls.CONFIG_SECTION])
@@ -91,6 +92,31 @@ class MACDCrossoverStrategy(BaseStrategy):
         ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
 
         return cls(ticker_list, analysis_date, sma_period, macd_fast_period, macd_slow_period, macd_signal_period)
+
+
+    def _get_valid_date_range(self, current_date: date, cutover_time: time):
+        '''
+            given a date (e.g. currnet business date), returns the recommendation set's
+            valid_from and valid_to values.
+            Specifically, it returns:
+                (current_date + cutover_time, [current_date + 1] + cutover_time)
+        '''
+        nyse_cal= mcal.get_calendar('NYSE')
+
+        market_calendar= nyse_cal.schedule(
+            current_date - timedelta(days=5), current_date + timedelta(days=5))
+
+        valid_from_index=market_calendar.index.get_loc(
+            str(current_date), method = 'ffill')
+        valid_to_index=market_calendar.index.get_loc(
+            str(current_date + timedelta(days=1)), method = 'bfill')
+
+        valid_from=market_calendar.iloc[
+            valid_from_index].market_close.to_pydatetime().replace(hour=cutover_time.hour, minute=cutover_time.minute, second=cutover_time.second)
+        valid_to = market_calendar.iloc[
+            valid_to_index].market_close.to_pydatetime().replace(hour=cutover_time.hour, minute=cutover_time.minute, second=cutover_time.second)
+
+        return (valid_from, valid_to)
 
     def _read_price_metrics(self, ticker_symbol: str):
         '''
@@ -255,9 +281,7 @@ class MACDCrossoverStrategy(BaseStrategy):
         self.raw_dataframe = self.raw_dataframe.sort_values(
             ['recommendation', 'divergence'], ascending=(True, False))
 
-        valid_from = datetime(self.analysis_date.year, self.analysis_date.month,
-                              self.analysis_date.day, 0, 0, 0) + timedelta(days=constants.BUSINESS_DATE_DAYS_LOOKBACK)
-        valid_to = valid_from + timedelta(days=2) - timedelta(minutes=1)
+        (valid_from, valid_to) = self._get_valid_date_range(self.analysis_date, constants.BUSINESS_DATE_CUTOVER_TIME)
 
         self.recommendation_set = SecurityRecommendationSet.from_parameters(
             datetime.now(), valid_from, valid_to, self.analysis_date, self.STRATEGY_NAME,
