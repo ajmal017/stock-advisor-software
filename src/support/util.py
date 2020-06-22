@@ -46,13 +46,6 @@ def datetime_to_iso_utc_string(date: datetime):
         raise ValidationError("Could not convert date to string", e)
 
 
-def trunc(date: datetime):
-    '''
-        truncates a date object and removes the time component
-    '''
-    return date.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
 def get_business_date(days_offset: int, cutover_time: time):
     '''
         Returs the current business by comparing the current date with the
