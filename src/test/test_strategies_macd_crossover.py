@@ -213,8 +213,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             patch.object(intrinio_data, 'get_macd_indicator',
                          return_value=self.macd_dict):
 
-            ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
-
             macd_strategy = MACDCrossoverStrategy(
                 self.ticker_list, date(2020, 6, 8), 50, 12, 26, 9)
 

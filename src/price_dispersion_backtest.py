@@ -3,7 +3,8 @@
 import argparse
 import logging
 import pandas as pd
-from datetime import datetime
+import pandas_market_calendars as mcal
+from datetime import date
 from datetime import timedelta
 from support import util
 from exception.exceptions import BaseError
@@ -17,6 +18,25 @@ from support import constants
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] - %(message)s')
 log = logging.getLogger()
+
+
+def get_nearest_business_date(cal_date: date):
+    '''
+        given a calendar date, returns the nearest past business date
+    '''
+    nyse_cal= mcal.get_calendar('NYSE')
+
+    market_calendar= nyse_cal.schedule(
+        cal_date - timedelta(days=5), cal_date + timedelta(days=5))
+
+    business_date_index=market_calendar.index.get_loc(
+        str(cal_date), method = 'ffill')
+
+
+    business_date=market_calendar.iloc[
+        business_date_index].market_close.to_pydatetime().date()
+
+    return business_date
 
 
 def main():
@@ -71,7 +91,7 @@ def main():
         'sel_tot_3M': []
     }
 
-    today = datetime.now()
+    today = date.today()
 
     def backtest(analysis_period: str):
         log.info("Peforming backtest for %s" % analysis_period)
@@ -84,9 +104,9 @@ def main():
             ticker_list, period, None, output_size)
         strategy.generate_recommendation()
 
-        date_1m = data_end_date + timedelta(days=30)
-        date_2m = data_end_date + timedelta(days=60)
-        date_3m = data_end_date + timedelta(days=90)
+        date_1m = get_nearest_business_date(data_end_date + timedelta(days=30))
+        date_2m = get_nearest_business_date(data_end_date + timedelta(days=60))
+        date_3m = get_nearest_business_date(data_end_date + timedelta(days=90))
 
         portfolio_1m = calculator.mark_to_market(
             strategy.recommendation_dataframe, 'ticker', 'analysis_price', date_1m)['actual_return'].mean() * 100
