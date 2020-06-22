@@ -52,7 +52,8 @@ def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str
 
     for ticker in data_frame[ticker_col_name]:
         try:
-            latest_price = intrinio_data.get_daily_stock_close_prices(ticker, price_date, price_date)
+            latest_price = intrinio_data.get_daily_stock_close_prices(
+                ticker, price_date, price_date)
 
             mmt_prices.append(latest_price[price_date.strftime("%Y-%m-%d")])
         except Exception as e:

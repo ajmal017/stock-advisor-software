@@ -90,22 +90,28 @@ class PriceDispersionStrategy(BaseStrategy):
         except Exception as e:
             raise ValidationError("Could not parse Analysis Period", e)
 
-        (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_period_range(
-            self.analysis_period)
-
-        if (self.analysis_end_date > date.today()):
-            logging.debug("Setting analysis end date to 'today'")
-            self.analysis_end_date = date.today()
-
         self.ticker_list = ticker_list
 
         self.output_size = output_size
 
         if (current_price_date == None):
-            self.current_price_date = util.get_business_date(
+            business_date = self.current_price_date = util.get_business_date(
                 constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
+
+            self.current_price_date = business_date
         else:
             self.current_price_date = current_price_date
+
+        (self.analysis_start_date, self.analysis_end_date) = intrinio_util.get_month_period_range(
+            self.analysis_period)
+
+        if (self.analysis_start_date > self.current_price_date):
+            raise ValidationError("Price Date: [%s] must be greater than the Analysis Start Date [%s]" % (
+                self.current_price_date, self.analysis_start_date), None)
+
+        if (self.analysis_end_date > self.current_price_date):
+            logging.debug("Setting analysis end date to 'today'")
+            self.analysis_end_date = self.current_price_date
 
         self.recommendation_set = None
         self.raw_dataframe = None
@@ -116,6 +122,7 @@ class PriceDispersionStrategy(BaseStrategy):
         '''
             See BaseStrategy.from_configuration for documentation
         '''
+        today = pd.to_datetime('today').date()
 
         try:
             config_params = dict(configuration.config[cls.CONFIG_SECTION])
@@ -128,7 +135,7 @@ class PriceDispersionStrategy(BaseStrategy):
 
         ticker_list = TickerList.try_from_s3(app_ns, ticker_file_name)
         analysis_period = (
-            pd.Period(date.today(), 'M') - 1).strftime("%Y-%m")
+            pd.Period(today, 'M') - 1).strftime("%Y-%m")
 
         current_price_date = util.get_business_date(
             constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
@@ -180,7 +187,8 @@ class PriceDispersionStrategy(BaseStrategy):
 
         logging.debug("Analysis date range is %s, %s" %
                       (dds.strftime("%Y-%m-%d"), dde.strftime("%Y-%m-%d")))
-        logging.debug("Analysis price date is %s" % (dde.strftime("%Y-%m-%d")))
+        logging.debug("Analysis price date is %s" %
+                      (self.current_price_date.strftime("%Y-%m-%d")))
 
         for ticker in self.ticker_list.ticker_symbols:
             try:
@@ -266,6 +274,9 @@ class PriceDispersionStrategy(BaseStrategy):
 
     def display_results(self):
         '''
+            Displays the results of the strategy to the screen.
+            Specifically displays the ranking of the securities using
+            a Pandas Dataframe and the resulting recommendation set.
         '''
         log.info("Calculating Current Returns")
         raw_dataframe = calculator.mark_to_market(

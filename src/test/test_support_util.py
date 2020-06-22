@@ -40,7 +40,6 @@ class TestSupportUtil(unittest.TestCase):
             self.assertEqual(util.get_business_date(
                 0, time(17, 0, 0)), date(2020, 6, 10))
 
-
     def test_get_business_date_with_days_offset(self):
         with patch.object(pd.Timestamp, 'utcnow',
                           return_value=pd.Timestamp('2020-06-10T23:00:00+0000')):

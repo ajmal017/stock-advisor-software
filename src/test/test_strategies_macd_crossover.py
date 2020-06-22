@@ -12,7 +12,6 @@ from exception.exceptions import ValidationError
 from strategies.macd_crossover_strategy import MACDCrossoverStrategy
 from connectors import intrinio_data
 from support.configuration import Configuration
-from support import constants
 
 
 class TestStrategiesMACDCrossover(unittest.TestCase):
@@ -27,11 +26,28 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
     ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
     ticker_list = TickerList.from_local_file(ticker_file_path)
 
-    def test_init_incorrect_config(self):
+    def test_from_configuration_invalid(self):
         with patch('support.constants.CONFIG_FILE_PATH', "./test/config-unittest-bad/"):
             bad_config = Configuration.from_local_config("bad-test-config.ini")
             with self.assertRaises(ValidationError):
                 MACDCrossoverStrategy.from_configuration(bad_config, 'sa')
+
+    def test_from_configuration_valid(self):
+
+        ticker_list = TickerList.from_local_file(
+            "%s/djia30.json" % (constants.APP_DATA_DIR))
+
+        price_date = date(2020, 6, 3)
+
+        with patch.object(util, 'get_business_date',
+                          return_value=price_date), \
+            patch.object(TickerList, 'from_s3',
+                         return_value=ticker_list):
+
+            strategy = MACDCrossoverStrategy.from_configuration(
+                Configuration.from_local_config(constants.STRATEGY_CONFIG_FILE_NAME), 'sa')
+
+            self.assertEqual(strategy.analysis_date, price_date)
 
     '''
         _analyze_security tests
@@ -42,7 +58,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price above SMA
             MACD Above Signal line
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -60,7 +75,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price below SMA
             MACD Above Signal line
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -78,7 +92,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price above SMA
             MACD Above below Signal line (consistently)
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -96,7 +109,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price above SMA
             MACD dips below signal line beyond what the threshold allows
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -114,7 +126,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price above SMA
             MACD dips below signal within threshold for one day
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -132,7 +143,6 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
             Current price above SMA
             MACD dips below signal within threshold for 3 days
         '''
-        ticker_file_path = "%s/djia30.json" % constants.TICKER_DATA_DIR
 
         macd_strategy = MACDCrossoverStrategy(
             self.ticker_list, date(2020, 6, 10), 50, 12, 26, 9)
@@ -145,11 +155,11 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         self.assertFalse(macd_strategy._analyze_security(
             current_price, sma_list, macd_lines, signal_lines))
 
-    price_dict={
+    price_dict = {
         "2020-06-08": 54.74
     }
 
-    sma_dict={
+    sma_dict = {
         "2020-06-08": 43.80299999999999,
         "2020-06-05": 43.48459999999999,
         "2020-06-04": 43.16879999999999,
@@ -158,36 +168,36 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
         "2020-06-01": 42.248400000000004
     }
 
-    macd_dict={
+    macd_dict = {
         "2020-06-08": {
-        "macd_histogram": 0.9111766583116911,
-        "macd_line": 2.085415403516656,
-        "signal_line": 1.1742387452049647
+            "macd_histogram": 0.9111766583116911,
+            "macd_line": 2.085415403516656,
+            "signal_line": 1.1742387452049647
         },
         "2020-06-05": {
-        "macd_histogram": 0.6835851903469985,
-        "macd_line": 1.6300297709740406,
-        "signal_line": 0.9464445806270421
+            "macd_histogram": 0.6835851903469985,
+            "macd_line": 1.6300297709740406,
+            "signal_line": 0.9464445806270421
         },
         "2020-06-04": {
-        "macd_histogram": 0.41855248391063227,
-        "macd_line": 1.1941007669509247,
-        "signal_line": 0.7755482830402924
+            "macd_histogram": 0.41855248391063227,
+            "macd_line": 1.1941007669509247,
+            "signal_line": 0.7755482830402924
         },
         "2020-06-03": {
-        "macd_histogram": 0.35465430132495446,
-        "macd_line": 1.0255644633875889,
-        "signal_line": 0.6709101620626344
+            "macd_histogram": 0.35465430132495446,
+            "macd_line": 1.0255644633875889,
+            "signal_line": 0.6709101620626344
         },
         "2020-06-02": {
-        "macd_histogram": 0.1990324206406321,
-        "macd_line": 0.7812790073720279,
-        "signal_line": 0.5822465867313958
+            "macd_histogram": 0.1990324206406321,
+            "macd_line": 0.7812790073720279,
+            "signal_line": 0.5822465867313958
         },
         "2020-06-01": {
-        "macd_histogram": 0.12213848547005757,
-        "macd_line": 0.6546269670412954,
-        "signal_line": 0.5324884815712378
+            "macd_histogram": 0.12213848547005757,
+            "macd_line": 0.6546269670412954,
+            "signal_line": 0.5324884815712378
         }
     }
 
@@ -246,32 +256,31 @@ class TestStrategiesMACDCrossover(unittest.TestCase):
                 macd_strategy._read_price_metrics('AAPL')
 
     '''
-        generate_recommendation test
+        generate_recommendation tests
+        Tests that the recommendation set is properly constructed, specifially
+        in terms of using the correct dates
     '''
 
-    def test_recommendation_set(self):
+    def test_recommendation_set_dates(self):
 
-        price_date = date(2020,6,8)
-        with patch.object(TickerList, 'try_from_s3',
-                          return_value=self.ticker_list), \
-             patch.object(intrinio_data, 'get_daily_stock_close_prices',
+        price_date = date(2020, 6, 8)
+        with patch.object(intrinio_data, 'get_daily_stock_close_prices',
                           return_value=self.price_dict), \
-             patch.object(intrinio_data, 'get_sma_indicator',
+            patch.object(intrinio_data, 'get_sma_indicator',
                          return_value=self.sma_dict), \
-             patch.object(intrinio_data, 'get_macd_indicator',
-                         return_value=self.macd_dict), \
-             patch.object(util, 'get_business_date',
-                         return_value=price_date):
+            patch.object(intrinio_data, 'get_macd_indicator',
+                         return_value=self.macd_dict):
 
-            configuration = Configuration.from_local_config(
-            constants.STRATEGY_CONFIG_FILE_NAME)
-
-            strategy = MACDCrossoverStrategy.from_configuration(configuration, 'sa')
+            strategy = MACDCrossoverStrategy(
+                self.ticker_list, price_date, 50, 12, 26, 9)
 
             strategy.generate_recommendation()
 
             recommendation_set = strategy.recommendation_set
 
-            self.assertTrue(recommendation_set.model['valid_from'], date(2020,6,3))
-            self.assertTrue(recommendation_set.model['valid_to'], date(2020,6,3))
-            self.assertTrue(recommendation_set.model['price_date'], date(2020,6,3))
+            self.assertEqual(recommendation_set.model[
+                'valid_from'], str(date(2020, 6, 8)))
+            self.assertEqual(recommendation_set.model[
+                'valid_to'], str(date(2020, 6, 8)))
+            self.assertEqual(recommendation_set.model[
+                'price_date'], str(date(2020, 6, 8)))

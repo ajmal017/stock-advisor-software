@@ -76,7 +76,8 @@ def main():
         log.info("Parameters:")
         log.info("Application Namespace: %s" % app_ns)
 
-        business_date = util.get_business_date(constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
+        business_date = util.get_business_date(
+            constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
         log.info("Business Date is: %s" % business_date)
 
         # test all connectivity upfront, so if there any issues

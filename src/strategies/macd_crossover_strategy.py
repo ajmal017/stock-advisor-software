@@ -93,7 +93,6 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         return cls(ticker_list, analysis_date, sma_period, macd_fast_period, macd_slow_period, macd_signal_period)
 
-
     def _read_price_metrics(self, ticker_symbol: str):
         '''
             Helper function that downloads the necessary data to perfom the MACD Crossover calculation.

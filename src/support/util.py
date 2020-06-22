@@ -82,9 +82,9 @@ def get_business_date(days_offset: int, cutover_time: time):
     market_calendar = nyse_cal.schedule(
         utcnow_with_delta - timedelta(days=10), utcnow_with_delta + timedelta(days=10))
 
-    market_calendar['market_close'] = market_calendar['market_close'].map(lambda d: pd.Timestamp(d.year, d.month, 
-            d.day, cutover_time.hour, cutover_time.minute, cutover_time.second).tz_localize('UTC'))
-    market_calendar= market_calendar[market_calendar.market_close < (
+    market_calendar['market_close'] = market_calendar['market_close'].map(lambda d: pd.Timestamp(d.year, d.month,
+                                                                                                 d.day, cutover_time.hour, cutover_time.minute, cutover_time.second).tz_localize('UTC'))
+    market_calendar = market_calendar[market_calendar.market_close < (
         utcnow_with_delta)]
 
     try:
