@@ -17,7 +17,7 @@ from strategies.price_dispersion_strategy import PriceDispersionStrategy
 from strategies.macd_crossover_strategy import MACDCrossoverStrategy
 from services import recommendation_svc
 from model.recommendation_set import SecurityRecommendationSet
-from support import constants, logging_definition
+from support import constants, logging_definition, util
 from support.configuration import Configuration
 
 
@@ -76,6 +76,9 @@ def main():
         log.info("Parameters:")
         log.info("Application Namespace: %s" % app_ns)
 
+        business_date = util.get_business_date(constants.BUSINESS_DATE_DAYS_LOOKBACK, constants.BUSINESS_DATE_CUTOVER_TIME)
+        log.info("Business Date is: %s" % business_date)
+
         # test all connectivity upfront, so if there any issues
         # the problem becomes more apparent
         connector_test.test_aws_connectivity()
@@ -104,7 +107,7 @@ def main():
                 log.info("No recommendation set was found in S3.")
 
             if recommendation_set == None  \
-                    or not recommendation_set.is_current(datetime.now()):
+                    or not recommendation_set.is_current(business_date):
 
                 strategy.generate_recommendation()
                 strategy.display_results()

@@ -4,12 +4,12 @@ This module contains a collection of calculations shared by the trading
 strategies contained in this package.
 """
 import pandas as pd
-from datetime import datetime
+from datetime import date
 from connectors import intrinio_data
 from exception.exceptions import ValidationError, CalculationError, DataError
 
 
-def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str, price_date: datetime):
+def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str, price_date: date):
     """
         Peforms a Mark to Market on a Pandas dataframe representing
         a set of stocks given a price date. This is used
@@ -30,7 +30,7 @@ def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str
             Name of the ticker column
         price_col_name: str
             Name of the price column
-        price_date: datetime
+        price_date: date
             Price date, current or historical
 
         Returns
@@ -52,9 +52,9 @@ def mark_to_market(data_frame: object, ticker_col_name: str, price_col_name: str
 
     for ticker in data_frame[ticker_col_name]:
         try:
-            latest_price = intrinio_data.get_latest_close_price(ticker, price_date, 5)[
-                1]
-            mmt_prices.append(latest_price)
+            latest_price = intrinio_data.get_daily_stock_close_prices(ticker, price_date, price_date)
+
+            mmt_prices.append(latest_price[price_date.strftime("%Y-%m-%d")])
         except Exception as e:
             raise DataError("Could not perform MMT calculation", e)
 

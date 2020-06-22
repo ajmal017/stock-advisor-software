@@ -4,8 +4,7 @@
   with the Intrinio SDK
 """
 
-from datetime import date
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 import calendar
 from exception.exceptions import ValidationError
 

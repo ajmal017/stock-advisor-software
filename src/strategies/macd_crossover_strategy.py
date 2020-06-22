@@ -112,9 +112,9 @@ class MACDCrossoverStrategy(BaseStrategy):
             str(current_date + timedelta(days=1)), method = 'bfill')
 
         valid_from=market_calendar.iloc[
-            valid_from_index].market_close.to_pydatetime().replace(hour=cutover_time.hour, minute=cutover_time.minute, second=cutover_time.second)
+            valid_from_index].market_close.to_pydatetime().date()
         valid_to = market_calendar.iloc[
-            valid_to_index].market_close.to_pydatetime().replace(hour=cutover_time.hour, minute=cutover_time.minute, second=cutover_time.second)
+            valid_to_index].market_close.to_pydatetime().date()
 
         return (valid_from, valid_to)
 
@@ -141,7 +141,7 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         lookback_date = self.analysis_date - timedelta(days=7)
 
-        dict_key = intrinio_util.date_to_string(self.analysis_date)
+        dict_key = self.analysis_date.strftime("%Y-%m-%d")
 
         current_price_dict = intrinio_data.get_daily_stock_close_prices(
             ticker_symbol, self.analysis_date, self.analysis_date

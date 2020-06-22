@@ -1,6 +1,6 @@
 """Author: Mark Hanegraaff -- 2020
 """
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import uuid
 import pytz
 import json
@@ -34,11 +34,11 @@ class SecurityRecommendationSet(BaseModel):
             },
             "valid_from": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
             },
             "valid_to": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date"
             },
             "price_date": {
                 "type": "string",
@@ -76,8 +76,8 @@ class SecurityRecommendationSet(BaseModel):
         super().__init__(model_dict)
 
     @classmethod
-    def from_parameters(cls, creation_date: datetime, valid_from: datetime,
-                        valid_to: datetime, price_date: datetime,
+    def from_parameters(cls, creation_date: datetime, valid_from: date,
+                        valid_to: date, price_date: date,
                         strategy_name: str, security_type: str, securities_set: dict):
         '''
             Initializes This class by supplying all required parameters.
@@ -100,8 +100,8 @@ class SecurityRecommendationSet(BaseModel):
             cls.model = {
                 "set_id": str(uuid.uuid1()),
                 "creation_date": util.datetime_to_iso_utc_string(creation_date),
-                "valid_from": util.datetime_to_iso_utc_string(valid_from),
-                "valid_to": util.datetime_to_iso_utc_string(valid_to),
+                "valid_from": valid_from.strftime("%Y-%m-%d"),
+                "valid_to": valid_to.strftime("%Y-%m-%d"),
                 "price_date": price_date.strftime("%Y-%m-%d"),
                 "strategy_name": strategy_name,
                 "security_type": security_type,
@@ -119,15 +119,14 @@ class SecurityRecommendationSet(BaseModel):
 
         return cls.from_dict(cls.model)
 
-    def is_current(self, current_date: datetime):
+    def is_current(self, comparison_date: date):
         """
             Returns True if this recommendation set is still current.
         """
         valid_from = parser.parse(
-            self.model['valid_from'])
+            self.model['valid_from']).date()
 
         valid_to = parser.parse(
-            self.model['valid_to'])
-        valid_to = valid_to.replace(hour=23, minute=59, second=59)
+            self.model['valid_to']).date()
 
-        return valid_from.timestamp() <= current_date.timestamp() <= valid_to.timestamp()
+        return valid_from <= comparison_date < valid_to
