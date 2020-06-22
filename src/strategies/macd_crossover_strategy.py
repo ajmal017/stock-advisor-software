@@ -94,30 +94,6 @@ class MACDCrossoverStrategy(BaseStrategy):
         return cls(ticker_list, analysis_date, sma_period, macd_fast_period, macd_slow_period, macd_signal_period)
 
 
-    def _get_valid_date_range(self, current_date: date, cutover_time: time):
-        '''
-            given a date (e.g. currnet business date), returns the recommendation set's
-            valid_from and valid_to values.
-            Specifically, it returns:
-                (current_date + cutover_time, [current_date + 1] + cutover_time)
-        '''
-        nyse_cal= mcal.get_calendar('NYSE')
-
-        market_calendar= nyse_cal.schedule(
-            current_date - timedelta(days=5), current_date + timedelta(days=5))
-
-        valid_from_index=market_calendar.index.get_loc(
-            str(current_date), method = 'ffill')
-        valid_to_index=market_calendar.index.get_loc(
-            str(current_date + timedelta(days=1)), method = 'bfill')
-
-        valid_from=market_calendar.iloc[
-            valid_from_index].market_close.to_pydatetime().date()
-        valid_to = market_calendar.iloc[
-            valid_to_index].market_close.to_pydatetime().date()
-
-        return (valid_from, valid_to)
-
     def _read_price_metrics(self, ticker_symbol: str):
         '''
             Helper function that downloads the necessary data to perfom the MACD Crossover calculation.
@@ -153,7 +129,7 @@ class MACDCrossoverStrategy(BaseStrategy):
         )
         if not dict_key in sma_dict:
             raise DataError("Unable to download Simple moving average for (%s, %s)" % (
-                ticker_symbol, dict_key))
+                ticker_symbol, dict_key), None)
         sma_ordered_dict = OrderedDict(sorted(sma_dict.items(), reverse=True))
 
         # Get last 3 days of macd and singal values
@@ -163,7 +139,7 @@ class MACDCrossoverStrategy(BaseStrategy):
 
         if not dict_key in macd_dict:
             raise DataError("Unable to download MACD values for (%s, %s)" % (
-                ticker_symbol, dict_key))
+                ticker_symbol, dict_key), None)
 
         macd_line_dict = OrderedDict(
             sorted(macd_dict.items(), reverse=True))
@@ -281,7 +257,7 @@ class MACDCrossoverStrategy(BaseStrategy):
         self.raw_dataframe = self.raw_dataframe.sort_values(
             ['recommendation', 'divergence'], ascending=(True, False))
 
-        (valid_from, valid_to) = self._get_valid_date_range(self.analysis_date, constants.BUSINESS_DATE_CUTOVER_TIME)
+        valid_from = valid_to = self.analysis_date
 
         self.recommendation_set = SecurityRecommendationSet.from_parameters(
             datetime.now(), valid_from, valid_to, self.analysis_date, self.STRATEGY_NAME,

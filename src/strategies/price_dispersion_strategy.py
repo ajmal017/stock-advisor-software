@@ -261,8 +261,6 @@ class PriceDispersionStrategy(BaseStrategy):
         (valid_from, valid_to) = intrinio_util.get_month_period_range(
             self.analysis_period + 1)
 
-        valid_to = valid_to + timedelta(days=1)
-
         self.recommendation_set = SecurityRecommendationSet.from_parameters(datetime.now(), valid_from, valid_to, self.analysis_end_date,
                                                                             self.STRATEGY_NAME, "US Equities", priced_securities)
 

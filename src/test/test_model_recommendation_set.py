@@ -105,7 +105,7 @@ class TestSecurityRecommendationSet(unittest.TestCase):
             datetime(2020, 3, 1, 4, 56, 57, tzinfo=timezone.utc),
             date(2019, 8, 1),
             date(2019, 8, 31),
-            date(2019, 9, 1),
+            date(2019, 8, 31),
             "PRICE_DISPERSION",
             "US Equities",
             {
@@ -125,7 +125,7 @@ class TestSecurityRecommendationSet(unittest.TestCase):
             datetime(2020, 3, 1, 4, 56, 57, tzinfo=timezone.utc),
             date(2019, 8, 1),
             date(2019, 8, 31),
-            date(2019, 9, 1),
+            date(2019, 8, 31),
             "PRICE_DISPERSION",
             "US Equities",
             {
@@ -145,7 +145,7 @@ class TestSecurityRecommendationSet(unittest.TestCase):
             datetime(2020, 3, 1, 4, 56, 57, tzinfo=timezone.utc),
             date(2019, 8, 1),
             date(2019, 8, 31),
-            date(2019, 9, 1),
+            date(2019, 8, 31),
             "PRICE_DISPERSION",
             "US Equities",
             {
@@ -157,3 +157,22 @@ class TestSecurityRecommendationSet(unittest.TestCase):
 
         self.assertTrue(recommendation_set.is_current(
             date(2019, 8, 15)))
+
+    def test_is_current_current_date_2(self):
+        # Create a recommendation set from the past (2019/8)
+        recommendation_set = SecurityRecommendationSet.from_parameters(
+            datetime(2020, 3, 1, 4, 56, 57, tzinfo=timezone.utc),
+            date(2019, 8, 1),
+            date(2019, 8, 1),
+            date(2019, 8, 1),
+            "PRICE_DISPERSION",
+            "US Equities",
+            {
+                "GE": 123.45,
+                "INTC": 123.45,
+                "AAPL": 123.45
+            }
+        )
+
+        self.assertTrue(recommendation_set.is_current(
+            date(2019, 8, 1)))

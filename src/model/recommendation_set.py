@@ -129,4 +129,4 @@ class SecurityRecommendationSet(BaseModel):
         valid_to = parser.parse(
             self.model['valid_to']).date()
 
-        return valid_from <= comparison_date < valid_to
+        return valid_from <= comparison_date <= valid_to
