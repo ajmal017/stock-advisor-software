@@ -124,7 +124,28 @@ Here is an example:
 		"BA",
 		"CAT",
 		"CSCO",
-        "... all other ticker symbols ..."
+		"CVX",
+		"GE",
+		"GS",
+		"HD",
+		"IBM",
+		"INTC",
+		"JNJ",
+		"JPM",
+		"KO",
+		"MCD",
+		"MMM",
+		"MRK",
+		"MSFT",
+		"NKE",
+		"PFE",
+		"PG",
+		"TRV",
+		"UNH",
+		"V",
+		"VZ",
+		"WMT",
+		"XOM"
 	]
 }
 ```
