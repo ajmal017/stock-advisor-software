@@ -124,7 +124,7 @@ Here is an example:
 		"BA",
 		"CAT",
 		"CSCO",
-        //...
+        "... all other ticker symbols ..."
 	]
 }
 ```
@@ -159,7 +159,7 @@ ticker_list = TickerList.from_local_file(
             "%s/djia30.json" % (constants.APP_DATA_DIR))
 
 pd_strategy = PriceDispersionStrategy(
-            ticker_list, '2020-06', date(2020, 5, 16), 3)
+            ticker_list, '2020-06', date(2020, 2, 22), 3)
 ```
 
 ## Outputs
