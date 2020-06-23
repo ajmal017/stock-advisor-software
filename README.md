@@ -111,7 +111,7 @@ The main input to a Trading Strategy is a list of ticker symbols used a a basis 
 
 Each list is represented as a ```TickerList``` object and persisted using a JSON Document, and like other inputs, they may be sourced locally or from S3.
 
-Here is an example:
+Here is an example of a list representing the DOW30.
 
 ```JSON
 {
