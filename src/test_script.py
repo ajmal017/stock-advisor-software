@@ -44,9 +44,9 @@ def main():
         macd_strategy.generate_recommendation()
         macd_strategy.display_results()'''
 
-        #pd_strategy = PriceDispersionStrategy.from_configuration(config, 'sa')
-        pd_strategy = PriceDispersionStrategy(
-            ticker_list, '2020-06', date(2020, 5, 16), 3)
+        pd_strategy = PriceDispersionStrategy.from_configuration(config, 'sa')
+        '''pd_strategy = PriceDispersionStrategy(
+            ticker_list, '2020-06', date(2020, 5, 16), 3)'''
         pd_strategy.generate_recommendation()
         pd_strategy.display_results()
 

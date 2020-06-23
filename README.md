@@ -5,7 +5,7 @@ This repo is part of the Stock Advisor project found here:
 
 https://github.com/hanegraaff/stock-advisor-infrastructure
 
-This project contains the Stock Advisor application software. It is organized into two services that run as docker images. The first is a recommendation system that generates stock predictions based on various trading strategies, and the second is a portfolio manager that executes trades based on those same predictions.
+This project contains the Stock Advisor application software. It is organized into two services that run as docker images. The first is a recommendation system that generates predictions based on various trading strategies, and the second is a portfolio manager that executes trades based on those same predictions.
 
 
 # Table of Contents
@@ -102,24 +102,34 @@ python3.8 -m venv venv
 All scripts must be executed from the ```src``` folder.
 
 # Trading Strategies
-All recommendations are created using Trading Strategies which are located in the ```strategies``` module of this software. A strategy is simply and algorithm that reads a list of US Equities, downloads all necessary financial data and either ranks or filters the list to produce a subset of securities that will outperform their peers based on some calculation.
+All recommendations produced by this system are created using Trading Strategies which are located in the ```strategies``` module of this software. A strategy is simply and algorithm that reads a list of securities (currently US Equities), downloads all necessary financial data and either ranks or filters the list to produce a subset of that will outperform their peers based on the algorithm's calculations. 
 
-All strategies are implemented as classes that derive from the ```BaseStrategy``` Abstract Base Class, and expose a consistent interface. Each must be self contained in the sense that they must be able to initialize for a configuration file which can either be stored locally or in S3; this is how strategies are initialized in production. They can also be initialized using constructor, a technique which is useful when backtesting or performing other types of tests.
+All strategies are implemented as classes that derive from the ```BaseStrategy``` Abstract Base Class, and expose a consistent interface. Each is self contained in the sense that they must be able to initialize for a configuration file which can either be stored locally or in S3; this is how strategies are initialized in production. They can also be initialized using constructor, a technique which is useful when backtesting or performing other types of tests.
 
-This is an example of a strategy that is initialized using configuration. The application namespace is used to identify the S3 bucket used to store inputs. Note that these inputs can also be sourced locally
+## Inputs
+The main input to a Trading Strategy is a list of ticker symbols used a a basis for the analysis. All available strategies are based on US Equities, but other markets may be supported in the future. 
 
-```python
-from support import constants
-from support.configuration import Configuration
+Each list is represented as a ```TickerList``` object and persisted using a JSON Document, and like other inputs, they may be sourced locally or from S3.
 
-app_namespae = 'sa'
+Here is an example:
 
-config = Configuration.try_from_s3(
-    constants.STRATEGY_CONFIG_FILE_NAME, app_namespae)
-macd_strategy = MACDCrossoverStrategy.from_configuration(config, app_namespae)
+```JSON
+{
+	"list_name": "DOW30",
+	"list_type": "US_EQUITIES",
+	"comparison_symbol": "DIA",
+	"ticker_symbols":[
+		"AAPL",
+		"AXP",
+		"BA",
+		"CAT",
+		"CSCO",
+        ...
+	]
+}
 ```
 
-The configuration contains all inputs are parameters used by the strategy:
+When running in production, inputs are defined in a configuration file and are supplied to a strategy during initialization. This configuration identifies the appropriate ticker list and defines other static parameters used by the strategy.
 
 ```ini
 [macd_crossover_strategy]
@@ -130,7 +140,20 @@ macd_slow_period = 26
 macd_signal_period = 9
 ```
 
-And here is the same strategy initialized using a plain constructor. The two are functionally equivalent
+This is an example of a strategy that is initialized using configuration. The application namespace is used to identify the S3 bucket used to store inputs. All inputs can be soured locally or from S3. In fact if an input is sourced from S3 and is not found, this software will look for a suitable local alternative and upload it to S3. This is done to simplify the preparation work when new strategies are inroduced.
+
+```python
+from support import constants
+from support.configuration import Configuration
+
+app_namespae = 'sa'
+
+config = Configuration.try_from_s3(
+    constants.STRATEGY_CONFIG_FILE_NAME, app_namespae)
+pd_strategy = PriceDispersionStrategy.from_configuration(config, app_namespae)
+```
+
+Alternatively, strategies can be initialized using a plain constructor. The two are functionally equivalent
 
 ```python
 from model.ticker_list import TickerList
@@ -138,15 +161,50 @@ from model.ticker_list import TickerList
 ticker_list = TickerList.from_local_file(
             "%s/djia30.json" % (constants.APP_DATA_DIR))
 
-macd_strategy = MACDCrossoverStrategy(
+pd_strategy = PriceDispersionStrategy(
             ticker_list, date(2020, 6, 16), 50, 12, 16, 9)
 ```
 
-Finally, here is how the strategy is executed and results are displayed to the screen
+## Outputs
+The output of a strategy is a RecommendationSet object which contains the list of recommended securitues and a date range indicating its valid duration. Each strategy is different, and some will produce reommendations that can change daily (e.g. MACD crossover strategy) while others will last much longer (e.g. Price Dispersion Strategy)
+
+Once a strategy is initialized, it can be executed like this. the ```display_results``` display all inermediate data and final results to the screen, and is optional.
 
 ```python
-macd_strategy.generate_recommendation()
-macd_strategy.display_results()
+pd_strategy.generate_recommendation()
+pd_strategy.display_results()
+
+# this is the final recommendation
+recommendation_set = pd_strategy.recommendation_set
+```
+
+And here is what the recommedation will look like
+
+```JSON
+{
+    "set_id": "5d6c5a42-b54d-11ea-a412-acbc329ef75f",
+    "creation_date": "2020-06-23T12:30:47.271203+00:00",
+    "valid_from": "2020-06-01",
+    "valid_to": "2020-06-30",
+    "price_date": "2020-05-31",
+    "strategy_name": "PRICE_DISPERSION",
+    "security_type": "US Equities",
+    "securities_set": [
+        {
+            "ticker_symbol": "BA",
+            "price": 145.85
+        },
+        {
+            "ticker_symbol": "GE",
+            "price": 6.57
+        },
+        {
+            "ticker_symbol": "XOM",
+            "price": 45.47
+        }
+    ]
+}
+
 ```
 
 
@@ -173,7 +231,7 @@ These are the specific steps:
     - Analyst price forecast average
     - Analyst price forecast standard deviation
     - Analyst price forecast count (i.e. total forecasts)
-2) Normalize the standard deviation by converting it into a relative percentage.
+2) Normalize the standard deviation by converting it into a percentage relative to the price.
 3) Load data into a Pandas DataFrame, rank it by this percentage and sort into deciles. Sort each decile by expected return.
 4) Select a subset from the top decile(s). This will return stocks with the largest level of disagreement.
 
