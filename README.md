@@ -318,6 +318,22 @@ analysis_period ticker  dispersion_stdev_pct  analyst_expected_return  actual_re
 
 
 ## MACD Crossover Strategy
+### Description
+This is a momentum based strategy that will determine which securities in the ticker list are rallying. Rallying stocks are included in the recommendation and indicate a buy signal, while slumping stocks are excluded, and indicate a sell.
+
+Momentum is measured by looking at the combination of the MACD oscillator and the 50 day simple moving average. 
+
+Specifically this is how the algorithm works:
+1) For each security in the ticker list download the following:
+    - Current Price
+    - Previous 3 days of Simple Moving Average
+    - Previos 3 days of MACD data
+
+2) If the Current Price dipped below the SMA in the past 3 days, exclude the security
+3) If the MACD value dips below the signal abuptly, or trends below it for a period of time, exclude the security.
+4) In all other cases, e.g. when the price is above the SMA and the MACD has positively crossed the signal, include the security.
+
+
 
 
 # Securities Recommendation Service
