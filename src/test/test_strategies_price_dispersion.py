@@ -129,7 +129,7 @@ class TestStrategiesPriceDispersion(unittest.TestCase):
                 "list_type": "US_EQUITIES",
                 "comparison_symbol": "DIA",
                 "ticker_symbols": ['AAPL', 'V']
-            }), '2020-02', date(2020, 6, 10), 3)
+            }), '2000-05', date(2000, 6, 10), 3)
 
             with self.assertRaises(DataError):
                 strategy._load_financial_data()

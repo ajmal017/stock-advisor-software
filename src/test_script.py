@@ -38,17 +38,17 @@ def main():
         config = Configuration.try_from_s3(
             constants.STRATEGY_CONFIG_FILE_NAME, 'sa')
 
-        #macd_strategy = MACDCrossoverStrategy.from_configuration(config, 'sa')
+        macd_strategy = MACDCrossoverStrategy.from_configuration(config, 'sa')
         '''macd_strategy = MACDCrossoverStrategy(
-            ticker_list, date(2020, 6, 16), 50, 12, 16, 9)
+            ticker_list, date(2020, 6, 16), 50, 12, 16, 9)'''
         macd_strategy.generate_recommendation()
-        macd_strategy.display_results()'''
+        macd_strategy.display_results()
 
-        pd_strategy = PriceDispersionStrategy.from_configuration(config, 'sa')
+        #pd_strategy = PriceDispersionStrategy.from_configuration(config, 'sa')
         '''pd_strategy = PriceDispersionStrategy(
-            ticker_list, '2020-06', date(2020, 5, 16), 3)'''
+            ticker_list, '2020-06', date(2020, 5, 16), 3)
         pd_strategy.generate_recommendation()
-        pd_strategy.display_results()
+        pd_strategy.display_results()'''
 
     except Exception as e:
         log.error("Could run script, because, %s" % (str(e)))

@@ -255,7 +255,7 @@ These are the specific steps:
 Other than the standard inputs described above this strategy requires an ```output_size``` that indicates how many securities to return from the top decile.
 
 ### Outputs
-The following is the output that is displayed when the ```display_results()``` is called.
+The following is the output that is displayed when the ```display_results()``` method is called.
 
 ```
 [INFO] - Recommended Securities
@@ -319,147 +319,161 @@ analysis_period ticker  dispersion_stdev_pct  analyst_expected_return  actual_re
 
 ## MACD Crossover Strategy
 ### Description
-This is a momentum based strategy that will determine which securities in the ticker list are rallying. Rallying stocks are included in the recommendation and indicate a buy signal, while slumping stocks are excluded, and indicate a sell.
+This is a momentum based strategy that will determine which securities in the ticker list are in a bullish pattern. Bullish stocks are included in the recommendation and indicate a buy signal, while bearish stocks are excluded, and indicate a sell.
 
 Momentum is measured by looking at the combination of the MACD oscillator and the 50 day simple moving average. 
 
 Specifically this is how the algorithm works:
 1) For each security in the ticker list download the following:
-    - Current Price
-    - Previous 3 days of Simple Moving Average
-    - Previos 3 days of MACD data
+    - Current Price.
+    - Previous 3 days of Simple Moving Average.
+    - Previous 3 days of MACD data.
 
 2) If the Current Price dipped below the SMA in the past 3 days, exclude the security
 3) If the MACD value dips below the signal abuptly, or trends below it for a period of time, exclude the security.
-4) In all other cases, e.g. when the price is above the SMA and the MACD has positively crossed the signal, include the security.
+4) In all other cases, when the price is above the SMA and the MACD has positively crossed the signal, include the security.
 
+### Inputs
+Other than the standard inputs described above this strategy requires the Simple moving average duration (e.g. 50), and the MACD Parameters (e.g. slow period=12, fast period=26, signal period=9)
 
+### Outputs
+The following is the output that is displayed when the ```display_results()``` method is called.
 
+```
+[INFO] - Displaying results of MACD strategy
+[INFO] - Analysis Date: 2020-06-22
+[INFO] - SMA Period: 50, MACD Parameters: (12, 26, 9)
+ticker_symbol   price       sma       macd     signal  divergence recommendation
+         AAPL  358.87  311.4542  12.599670  11.813622    0.786047            BUY
+         MSFT  200.57  182.3494   4.420919   3.663821    0.757099            BUY
+           PG  117.75  116.8592   0.737041   0.637554    0.099487            BUY
+           BA  188.52  152.5798  12.115488  13.323454   -1.207965            BUY
+          WMT  121.68  124.2390  -1.145418  -1.115353   -0.030065           SELL
+           GE    7.04    6.7306   0.131364   0.193951   -0.062587           SELL
+           VZ   55.66   56.5202   0.093515   0.220545   -0.127030           SELL
+           KO   45.74   46.2820   0.023623   0.249573   -0.225950           SELL
+          JNJ  143.39  147.6642  -0.990239  -0.736441   -0.253797           SELL
+          PFE   33.11   36.4956  -1.000665  -0.735461   -0.265204           SELL
+         CSCO   45.16   44.1188   0.381327   0.704530   -0.323202           SELL
+          MRK   76.75   79.2452  -0.639450  -0.261935   -0.377515           SELL
+         INTC   60.09   60.4171  -0.115588   0.295528   -0.411116           SELL
+          XOM   46.42   45.4142   0.404718   0.960959   -0.556242           SELL
+          TRV  116.23  105.1330   3.612232   4.185904   -0.573672           SELL
+          CAT  125.79  117.6888   2.948674   3.584988   -0.636314           SELL
+          NKE   99.51   92.8907   1.522316   2.253229   -0.730913           SELL
+          IBM  121.07  122.9808   0.048031   0.875726   -0.827695           SELL
+          MMM  156.69  151.5704   2.145710   2.976977   -0.831267           SELL
+          CVX   91.59   91.1452   0.138943   1.004897   -0.865954           SELL
+            V  194.96  184.0674   2.287557   3.292771   -1.005214           SELL
+          AXP   99.44   92.7628   2.671866   3.709059   -1.037194           SELL
+          MCD  187.46  185.1424   1.346087   2.421222   -1.075135           SELL
+          JPM   96.75   95.4816   0.989232   2.133324   -1.144092           SELL
+           HD  249.16  232.4610   4.075657   5.503741   -1.428084           SELL
+           GS  203.42  190.1712   4.440308   6.170593   -1.730285           SELL
+          UNH  292.67  291.2354   0.209784   2.020274   -1.810490           SELL
+[INFO] - {
+    "set_id": "3bbf804e-b580-11ea-ae41-acbc329ef75f",
+    "creation_date": "2020-06-23T18:34:55.106794+00:00",
+    "valid_from": "2020-06-22",
+    "valid_to": "2020-06-22",
+    "price_date": "2020-06-22",
+    "strategy_name": "MACD_CROSSOVER",
+    "security_type": "US_EQUITIES",
+    "securities_set": [
+        {
+            "ticker_symbol": "AAPL",
+            "price": 358.87
+        },
+        {
+            "ticker_symbol": "BA",
+            "price": 188.52
+        },
+        {
+            "ticker_symbol": "MSFT",
+            "price": 200.57
+        },
+        {
+            "ticker_symbol": "PG",
+            "price": 117.75
+        }
+    ]
+}
+```
+
+### Backtesting
+It is possible to backtest this strategy by running the ```price_dispersion_backtest.py``` script. It works by running the strategy from 05/2019 to 02/2020 and comparing the returns of the selected portfolio with the average of the list supplied to it.
+
+Example:
+
+```
+>>python price_dispersion_backtest.py -ticker_file djia30.txt -output_size 3
+[INFO] - Parameters:
+[INFO] - Ticker File: djia30.txt
+[INFO] - Output Size: 3
+[INFO] - Peforming backtest for 5/2019
+[INFO] - Peforming backtest for 6/2019
+[INFO] - Peforming backtest for 7/2019
+[INFO] - Peforming backtest for 8/2019
+[INFO] - Peforming backtest for 9/2019
+[INFO] - Peforming backtest for 10/2019
+[INFO] - Peforming backtest for 11/2019
+[INFO] - Peforming backtest for 12/2019
+[INFO] - Peforming backtest for 1/2020
+[INFO] - Peforming backtest for 2/2020
+investment_period  ticker_sample_size  avg_ret_1M  sel_ret_1M  avg_ret_2M  sel_ret_2M  avg_ret_3M  sel_ret_3M
+          2019/05                  12       8.09%       9.95%      11.17%      12.31%       8.74%       5.49%
+          2019/06                  26       2.35%       3.56%      -2.00%     -10.78%       0.38%      -4.30%
+          2019/07                  26      -3.10%     -11.72%      -1.03%      -5.64%      -0.07%      -3.24%
+          2019/08                  26       2.78%       8.12%       4.55%      19.49%       7.09%      29.03%
+          2019/09                  22       2.12%       9.60%       4.62%      17.53%       8.13%      21.29%
+          2019/10                  27       2.65%       5.34%       5.01%       5.97%       6.43%      14.98%
+          2019/11                  26       2.26%       0.68%       3.53%       8.88%      -8.55%      -7.02%
+          2019/12                  25       1.46%       5.60%     -10.80%      -8.54%     -19.59%     -20.31%
+          2020/01                  27     -10.03%     -10.39%     -20.47%     -21.08%     -12.65%     -20.99%
+investment_period ticker_sample_size  avg_tot_1M  sel_tot_1M  avg_tot_2M  sel_tot_2M  avg_tot_3M  sel_tot_3M
+          ----/--                 --       8.57%      20.71%      -5.42%      18.14%     -10.09%      14.93%
+```
+
+Each line reports the returns for each montly portfolio selection at a 1 month, 2 month and 3 month horizon.
 
 # Securities Recommendation Service
 ![Security Recommendation Service Design](doc/recommendation-service.png)
 
-The Securities Recommendation service is a component of the Stock Advisor system that 
+The Securities Recommendation service is a component of the Stock Advisor system that executes the strategies described above and ensures they current. It is the service responsible for generating recommendations which are then used by the portfolio manager in order to maintain an active portfolio.
+
 ## Recommendation Service Release Notes
 This is an initial version that offers the following features
 
-* Ability to rank securities and generate recommendation.
+* Ability to execute multiple recommendation strategies. strategies are executed only when existing ones expire.
 * Local caching of financial data
-* Back testing capability
 * Ability to run inside a Docker container
 * Integrate into Stock Advisor Infrastructure, specifically ECS.
-
+* Generate notifications when new recommendations are created or when errors occur.
 
 ## Running the service from the command line
 The easiest way to run this service is via the command line. This section describes how.
 
 ```
 src >>python securities_recommendation_svc.py -h
-usage: securities_recommendation_svc.py [-h] -ticker_file TICKER_FILE -output_size
-                                   OUTPUT_SIZE
-                                   {test,production} ...
+[INFO] - Parsing command line parameters
+usage: securities_recommendation_svc.py [-h] -app_namespace APP_NAMESPACE
 
-Reads a list of US Equity ticker symbols and recommends a subset of them based
-on the degree of analyst target price agreement, specifically it will select
-stocks with the lowest agreement and highest predicted return. The input
-parameters consist of a file with a list of of ticker symbols, and the month
-and year period for the recommendations. The output is a JSON data structure
-with the final selection. When running this script in "production" mode, the
-analysis period is determined at runtime, and the system will interact with the AWS
-infrastructure to read inputs and store outputs.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -ticker_file TICKER_FILE
-                        Ticker Symbol local file path
-  -output_size OUTPUT_SIZE
-                        Number of selected securities
-
-environment:
-  runtime environment
-
-  {test,production}     the runtime environment of the application. It can be
-                        either "test" or "production"
-    test                Test mode. Analysis period and current date must be
-                        passed explicitly
-    production          Production mode. Analysis period and current date are
-                        determined at runtime
-```
-
-Where ```-ticker_file``` represents a local file or s3 object used to represent the universe of stocks that will be considered. It must contain
-a single ticker symbol per line.
-
-```
-AAPL
-AXP
-BA
-CAT
-CSCO
-CVX
-...
-```
-
-and ```-output_size``` represents the total number of recommended
-stocks resulting from the analysis.
-
-The script can be run in two modes, representing different runtime environments.
-
-### Production mode
-**Production** mode will automatically determine the analysis period based on the calendar date, and display actual returns using the same. It will also use S3 to read the inputs and store results. This is the mode that must be used when running in ECS.
-
-In this mode the service will identify the appropriate AWS infrastructure using a combination of CloudFormation exports and a namespace suppled to the command line (```-app_namespace```) used to avoid collisions. So for example, if the application namespace is set to ```sa```, the S3 bucket will be identified using the ```sa-data-bucket-name``` export. These are defined in the ```support.constants``` module.
-
-Finally, the recommendation set will be stored in s3, and a new one will only be created when the existing one expires. If the recommendation set is still valid, the script will quietly exit
-
-```
-src >>python securities_recommendation_svc.py production -h
-usage: securities_recommendation_svc.py production [-h] -app_namespace
-                                            APP_NAMESPACE
-
-optional arguments:
--h, --help            show this help message and exit
--app_namespace APP_NAMESPACE
-                        Application namespace used to identify AWS resources
-```
-
-For example:
-```
-python securities_recommendation_svc.py -ticker_file djia30.txt -output_size 3 production -app_namespace sa
-```
-
-This example generates a 3 stock recommendation using the DOW30 as an input, and using the latest analysis period based on calendar date.
-
-### Test mode
-**Test** mode expects the analysis period to be supplied using the command line, and will not interact with AWS, but rather rely on local resources. This mode is used when running and testing outside the production environment, and may also be used to run historically.
-
-In this mode, ```-price_date``` is optional, and is used to determine the price date used to display the current returns of the selection.
-    
-```
-src >>python securities_recommendation_svc.py test -h
-usage: securities_recommendation_svc.py test [-h] -analysis_month ANALYSIS_MONTH
-                                        -analysis_year ANALYSIS_YEAR
-                                        [-price_date PRICE_DATE]
+Executes all available strategies and creates stock recommendations for each.
+Recommendations are represented as JSON documents and are stored using S3. The
+command like input is an application namespace used to identify the AWS
+resources required by the service, namely the S3 bucket used to store the
+application inputs consisting of ticker lists and configuration, and the
+outputs consisting of recommendation objects. Recommendations are only created
+when the existing ones expire; the service will always inspect the current
+recommendation before determining whether to execute the corresponding
+strategy.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -analysis_month ANALYSIS_MONTH
-                        Analysis period's month
-  -analysis_year ANALYSIS_YEAR
-                        Analysis period's year
-  -price_date PRICE_DATE
-                        Price Date (YYYY/MM/DD) used to compute current
-                        returns
+  -app_namespace APP_NAMESPACE
+                        Application namespace used to identify AWS resources```
 
-```
-
-For example:
-```
-python securities_recommendation_svc.py -ticker_file djia30.txt -output_size 3 test -analysis_year 2020 -analysis_month 1 -price_date 2020/03/01 
-```
-
-This will generate a 3 stock recommendation using a local ticker file of the DOW 30 using an analysis period of 01/2020 and a price date of 03/01
-
-```analysis_year``` / ```analysis_month``` represent the financial period of the analyst forecasts, and ```price_date``` is the price date used to calculate the portfolio's current returns.
+Where ```-app_namespace``` is used to identify the AWS resources required by the service, name the name of the S3 bucket used to read inputs and store outputs.
 
 
 ### Recommendation Service Output
@@ -568,42 +582,6 @@ The cache is located in the following path:
 ```
 
 To delete or reset the contents of the cache, simply delete entire ```./financial-data/``` folder
-
-
-## Backtesting
-It is possible to backtest this strategy by running the ```price_dispersion_backtest.py``` script. It works by running the strategy from 05/2019 to 1/2020 and comparing the returns of the selected portfolio with the average of the list supplied to it.
-
-Example:
-
-```
->>python price_dispersion_backtest.py -ticker_file djia30.txt -output_size 3
-[INFO] - Parameters:
-[INFO] - Ticker File: djia30.txt
-[INFO] - Output Size: 3
-[INFO] - Peforming backtest for 5/2019
-[INFO] - Peforming backtest for 6/2019
-[INFO] - Peforming backtest for 7/2019
-[INFO] - Peforming backtest for 8/2019
-[INFO] - Peforming backtest for 9/2019
-[INFO] - Peforming backtest for 10/2019
-[INFO] - Peforming backtest for 11/2019
-[INFO] - Peforming backtest for 12/2019
-[INFO] - Peforming backtest for 1/2020
-investment_period  ticker_sample_size  avg_ret_1M  sel_ret_1M  avg_ret_2M  sel_ret_2M  avg_ret_3M  sel_ret_3M
-          2019/05                  12       8.09%       9.95%      11.17%      12.31%       8.74%       5.49%
-          2019/06                  26       2.35%       3.56%      -2.00%     -10.78%       0.38%      -4.30%
-          2019/07                  26      -3.10%     -11.72%      -1.03%      -5.64%      -0.07%      -3.24%
-          2019/08                  26       2.78%       8.12%       4.55%      19.49%       7.09%      29.03%
-          2019/09                  22       2.12%       9.60%       4.62%      17.53%       8.13%      21.29%
-          2019/10                  27       2.65%       5.34%       5.01%       5.97%       6.43%      14.98%
-          2019/11                  26       2.26%       0.68%       3.53%       8.88%      -8.55%      -7.02%
-          2019/12                  25       1.46%       5.60%     -10.80%      -8.54%     -19.59%     -20.31%
-          2020/01                  27     -10.03%     -10.39%     -20.47%     -21.08%     -12.65%     -20.99%
-investment_period ticker_sample_size  avg_tot_1M  sel_tot_1M  avg_tot_2M  sel_tot_2M  avg_tot_3M  sel_tot_3M
-          ----/--                 --       8.57%      20.71%      -5.42%      18.14%     -10.09%      14.93%
-```
-
-Each line reports the returns for each montly portfolio selection at a 1 month, 2 month and 3 month horizon.
 
 # Portfolio Manager
 ![Portfolio Manager Design](doc/portfolio-manager.png)
@@ -856,31 +834,35 @@ This command will execute all unit tests and run the coverage report (using cove
 
 ```
 src >>./test.sh
-............................................................................................................................................................
+....................................................................................................................................................................................
 ----------------------------------------------------------------------
-Ran 156 tests in 0.288s
+Ran 180 tests in 2.509s
 
 OK
 Name                                      Stmts   Miss  Cover
 -------------------------------------------------------------
-connectors/aws_service_wrapper.py            76      7    91%
+connectors/aws_service_wrapper.py            75      8    89%
 connectors/connector_test.py                 31      3    90%
-connectors/intrinio_data.py                 152     42    72%
-connectors/intrinio_util.py                  27      0   100%
+connectors/intrinio_data.py                 192     56    71%
+connectors/intrinio_util.py                  31      0   100%
 connectors/td_ameritrade.py                 146     20    86%
 exception/exceptions.py                      40      1    98%
-model/base_model.py                          59     10    83%
-model/portfolio.py                           78      2    97%
-model/recommendation_set.py                  33      0   100%
-model/ticker_file.py                         44     10    77%
-services/broker.py                          140     10    93%
+model/base_model.py                          56      5    91%
+model/portfolio.py                           77      2    97%
+model/recommendation_set.py                  32      0   100%
+model/ticker_list.py                         33      0   100%
+services/broker.py                          142     10    93%
 services/portfolio_mgr_svc.py                73      1    99%
-services/recommendation_svc.py               43      3    93%
+services/recommendation_svc.py               17      0   100%
+strategies/base_strategy.py                  19      3    84%
 strategies/calculator.py                     19      0   100%
-strategies/price_dispersion_strategy.py      72     31    57%
-support/constants.py                         14      0   100%
+strategies/macd_crossover_strategy.py       103      8    92%
+strategies/price_dispersion_strategy.py     108     26    76%
+support/configuration.py                     47      3    94%
+support/constants.py                         24      0   100%
 support/financial_cache.py                   33      2    94%
-support/util.py                              29      1    97%
+support/util.py                              35      2    94%
 -------------------------------------------------------------
-TOTAL                                      1109    143    87%
+TOTAL                                      1333    150    89%
+
 ```
