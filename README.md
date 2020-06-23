@@ -316,6 +316,40 @@ analysis_period ticker  dispersion_stdev_pct  analyst_expected_return  actual_re
         2020-05     VZ                 5.883                    0.073         -0.030       0
 ```
 
+### Backtesting
+It is possible to backtest this strategy by running the ```price_dispersion_backtest.py``` script. It works by running the strategy from 05/2019 to 02/2020 and comparing the returns of the selected portfolio with the average of the list supplied to it.
+
+Example:
+
+```
+>>python price_dispersion_backtest.py -ticker_file djia30.txt -output_size 3
+[INFO] - Parameters:
+[INFO] - Ticker File: djia30.txt
+[INFO] - Output Size: 3
+[INFO] - Peforming backtest for 5/2019
+[INFO] - Peforming backtest for 6/2019
+[INFO] - Peforming backtest for 7/2019
+[INFO] - Peforming backtest for 8/2019
+[INFO] - Peforming backtest for 9/2019
+[INFO] - Peforming backtest for 10/2019
+[INFO] - Peforming backtest for 11/2019
+[INFO] - Peforming backtest for 12/2019
+[INFO] - Peforming backtest for 1/2020
+[INFO] - Peforming backtest for 2/2020
+investment_period  ticker_sample_size  avg_ret_1M  sel_ret_1M  avg_ret_2M  sel_ret_2M  avg_ret_3M  sel_ret_3M
+          2019/05                  12       8.09%       9.95%      11.17%      12.31%       8.74%       5.49%
+          2019/06                  26       2.35%       3.56%      -2.00%     -10.78%       0.38%      -4.30%
+          2019/07                  26      -3.10%     -11.72%      -1.03%      -5.64%      -0.07%      -3.24%
+          2019/08                  26       2.78%       8.12%       4.55%      19.49%       7.09%      29.03%
+          2019/09                  22       2.12%       9.60%       4.62%      17.53%       8.13%      21.29%
+          2019/10                  27       2.65%       5.34%       5.01%       5.97%       6.43%      14.98%
+          2019/11                  26       2.26%       0.68%       3.53%       8.88%      -8.55%      -7.02%
+          2019/12                  25       1.46%       5.60%     -10.80%      -8.54%     -19.59%     -20.31%
+          2020/01                  27     -10.03%     -10.39%     -20.47%     -21.08%     -12.65%     -20.99%
+investment_period ticker_sample_size  avg_tot_1M  sel_tot_1M  avg_tot_2M  sel_tot_2M  avg_tot_3M  sel_tot_3M
+          ----/--                 --       8.57%      20.71%      -5.42%      18.14%     -10.09%      14.93%
+```
+
 
 ## MACD Crossover Strategy
 ### Description
@@ -400,40 +434,6 @@ ticker_symbol   price       sma       macd     signal  divergence recommendation
 }
 ```
 
-### Backtesting
-It is possible to backtest this strategy by running the ```price_dispersion_backtest.py``` script. It works by running the strategy from 05/2019 to 02/2020 and comparing the returns of the selected portfolio with the average of the list supplied to it.
-
-Example:
-
-```
->>python price_dispersion_backtest.py -ticker_file djia30.txt -output_size 3
-[INFO] - Parameters:
-[INFO] - Ticker File: djia30.txt
-[INFO] - Output Size: 3
-[INFO] - Peforming backtest for 5/2019
-[INFO] - Peforming backtest for 6/2019
-[INFO] - Peforming backtest for 7/2019
-[INFO] - Peforming backtest for 8/2019
-[INFO] - Peforming backtest for 9/2019
-[INFO] - Peforming backtest for 10/2019
-[INFO] - Peforming backtest for 11/2019
-[INFO] - Peforming backtest for 12/2019
-[INFO] - Peforming backtest for 1/2020
-[INFO] - Peforming backtest for 2/2020
-investment_period  ticker_sample_size  avg_ret_1M  sel_ret_1M  avg_ret_2M  sel_ret_2M  avg_ret_3M  sel_ret_3M
-          2019/05                  12       8.09%       9.95%      11.17%      12.31%       8.74%       5.49%
-          2019/06                  26       2.35%       3.56%      -2.00%     -10.78%       0.38%      -4.30%
-          2019/07                  26      -3.10%     -11.72%      -1.03%      -5.64%      -0.07%      -3.24%
-          2019/08                  26       2.78%       8.12%       4.55%      19.49%       7.09%      29.03%
-          2019/09                  22       2.12%       9.60%       4.62%      17.53%       8.13%      21.29%
-          2019/10                  27       2.65%       5.34%       5.01%       5.97%       6.43%      14.98%
-          2019/11                  26       2.26%       0.68%       3.53%       8.88%      -8.55%      -7.02%
-          2019/12                  25       1.46%       5.60%     -10.80%      -8.54%     -19.59%     -20.31%
-          2020/01                  27     -10.03%     -10.39%     -20.47%     -21.08%     -12.65%     -20.99%
-investment_period ticker_sample_size  avg_tot_1M  sel_tot_1M  avg_tot_2M  sel_tot_2M  avg_tot_3M  sel_tot_3M
-          ----/--                 --       8.57%      20.71%      -5.42%      18.14%     -10.09%      14.93%
-```
-
 Each line reports the returns for each montly portfolio selection at a 1 month, 2 month and 3 month horizon.
 
 # Securities Recommendation Service
@@ -471,7 +471,8 @@ strategy.
 optional arguments:
   -h, --help            show this help message and exit
   -app_namespace APP_NAMESPACE
-                        Application namespace used to identify AWS resources```
+                        Application namespace used to identify AWS resources
+```
 
 Where ```-app_namespace``` is used to identify the AWS resources required by the service, name the name of the S3 bucket used to read inputs and store outputs.
 
