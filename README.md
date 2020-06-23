@@ -5,7 +5,7 @@ This repo is part of the Stock Advisor project found here:
 
 https://github.com/hanegraaff/stock-advisor-infrastructure
 
-This project contains the Stock Advisor application software. It is organized into two services that run as docker images. The first is a recommendation system that generates predictions based on various trading strategies, and the second is a portfolio manager that executes trades based on those same predictions.
+This project contains the Stock Advisor application software. It is organized into two services that run as docker images. The first is a recommendation service that generates predictions based on various trading strategies, and the second is a portfolio manager that executes trades based on those same predictions.
 
 
 # Table of Contents
@@ -70,7 +70,7 @@ here:
 
 https://github.com/hanegraaff/TDAmeritrade-api-authentication
 
-As of this version you must manually create an authorization code and an inital refresh token that will be valid for 3 months, after which the process must be repeated.
+As of this version you must manually create an authorization code and an initial refresh token that will be valid for 3 months, after which the process must be repeated.
 
 Once you generate these artifacts, you must save them in the environment like this:
 
@@ -80,7 +80,7 @@ export TDAMERITRADE_CLIENT_ID=[your TDAmeritrade Client ID/Consumer Key]
 export TDAMERITRADE_REFRESH_TOKEN=[your TDAmeritrade refresh token]
 ```
 
-## Develpment Environment
+## Development Environment
 ```pip install -r requirements.txt```
 
 It is highly recommended to run this in a virtual environment:
@@ -102,12 +102,12 @@ python3.8 -m venv venv
 All scripts must be executed from the ```src``` folder.
 
 # Trading Strategies
-All recommendations produced by this system are created using Trading Strategies which are located in the ```strategies``` module of this software. A strategy is simply and algorithm that reads a list of securities (currently US Equities), downloads all necessary financial data and either ranks or filters the list to produce a subset of that will outperform their peers based on the algorithm's calculations. 
+All recommendations produced by this system, specifically the Securities Recommendation Service are created using Trading Strategies which are located in the ```strategies``` module of this software. A strategy is simply and algorithm that reads a list of securities (currently US Equities), downloads all necessary financial data and either ranks or filters the list to produce a subset of that will outperform their peers based on the algorithm's calculations. 
 
 All strategies are implemented as classes that derive from the ```BaseStrategy``` Abstract Base Class, and expose a consistent interface. Each is self contained in the sense that they must be able to initialize for a configuration file which can either be stored locally or in S3; this is how strategies are initialized in production. They can also be initialized using constructor, a technique which is useful when backtesting or performing other types of tests.
 
 ## Inputs
-The main input to a Trading Strategy is a list of ticker symbols used a a basis for the analysis. All available strategies are based on US Equities, but other markets may be supported in the future. 
+The main input to a Trading Strategy is a list of ticker symbols used a basis for the analysis. All available strategies are based on US Equities, but other markets may be supported in the future. 
 
 Each list is represented as a ```TickerList``` object and persisted using a JSON Document, and like other inputs, they may be sourced locally or from S3.
 
@@ -158,7 +158,7 @@ ticker_list_file_name=djia30.json
 output_size=3
 ```
 
-This is an example of a strategy that is initialized using configuration. The application namespace is used to identify the S3 bucket used to store inputs. All inputs can be soured locally or from S3. In fact if an input is sourced from S3 and is not found, this software will look for a suitable local alternative and upload it to S3. This is done to simplify the preparation work when new strategies are inroduced.
+This is an example of a strategy that is initialized using configuration. The application namespace is used to identify the S3 bucket used to store inputs. All inputs can be soured locally or from S3. In fact if an input is sourced from S3 and is not found, this software will look for a suitable local alternative and upload it to S3. This is done to simplify the preparation work when new strategies are introduced.
 
 ```python
 from support import constants
@@ -184,9 +184,9 @@ pd_strategy = PriceDispersionStrategy(
 ```
 
 ## Outputs
-The output of a strategy is a RecommendationSet object which contains the list of recommended securitues and a date range indicating its valid duration. Each strategy is different, and some will produce reommendations that can change daily (e.g. MACD crossover strategy) while others will last much longer (e.g. Price Dispersion Strategy)
+The output of a strategy is a RecommendationSet object which contains the list of recommended securities and a date range indicating its valid duration. Each strategy is different, and some will produce recommendations that can change daily (e.g. MACD crossover strategy) while others will last much longer (e.g. Price Dispersion Strategy)
 
-Once a strategy is initialized, it can be executed like this. the ```display_results``` display all inermediate data and final results to the screen, and is optional.
+Once a strategy is initialized, it can be executed like this. the ```display_results``` display all intermediate data and final results to the screen, and is optional.
 
 ```python
 pd_strategy.generate_recommendation()
@@ -196,7 +196,7 @@ pd_strategy.display_results()
 recommendation_set = pd_strategy.recommendation_set
 ```
 
-And here is what the recommedation will look like
+And here is what the recommendation will look like:
 
 ```JSON
 {
@@ -364,7 +364,7 @@ Specifically this is how the algorithm works:
     - Previous 3 days of MACD data.
 
 2) If the Current Price dipped below the SMA in the past 3 days, exclude the security
-3) If the MACD value dips below the signal abuptly, or trends below it for a period of time, exclude the security.
+3) If the MACD value dips below the signal abruptly, or trends below it for a period of time, exclude the security.
 4) In all other cases, when the price is above the SMA and the MACD has positively crossed the signal, include the security.
 
 ### Inputs
@@ -434,7 +434,10 @@ ticker_symbol   price       sma       macd     signal  divergence recommendation
 }
 ```
 
-Each line reports the returns for each montly portfolio selection at a 1 month, 2 month and 3 month horizon.
+Each line reports the returns for each monthly portfolio selection at a 1 month, 2 month and 3 month horizon.
+
+### Backtesting
+A MACD Crossover backtest is under development
 
 # Securities Recommendation Service
 ![Security Recommendation Service Design](doc/recommendation-service.png)
@@ -444,7 +447,7 @@ The Securities Recommendation service is a component of the Stock Advisor system
 ## Recommendation Service Release Notes
 This is an initial version that offers the following features
 
-* Ability to execute multiple recommendation strategies. strategies are executed only when existing ones expire.
+* Ability to execute multiple recommendation strategies which are executed only when existing ones expire.
 * Local caching of financial data
 * Ability to run inside a Docker container
 * Integrate into Stock Advisor Infrastructure, specifically ECS.
@@ -474,76 +477,36 @@ optional arguments:
                         Application namespace used to identify AWS resources
 ```
 
-Where ```-app_namespace``` is used to identify the AWS resources required by the service, name the name of the S3 bucket used to read inputs and store outputs.
-
+Where ```-app_namespace``` is used to identify the AWS resources required by the service, namely the name of the S3 bucket used to read inputs and store outputs. Internally this namespace is used to look up the CloudFormation exports exposed by AWS infrastructure that hosts this system. For more information, please refer to the main project which includes the infrastructure automation.
 
 ### Recommendation Service Output
-The main output is a JSON Document with the portfolio recommendation.
+The main output of this service is a set of recommendations which are stored in S3. As mentioned earlier in the document, recommendations are created only when none exist, or when the current ones are expired. When all recommendations are current, the service will essentially do nothing. Here is an example:
 
 ```
-[INFO] - 
-[INFO] - Recommended Securities
-[INFO] - {
-    "set_id": "bda2de4e-7ec6-11ea-86e7-acbc329ef75f",
-    "creation_date": "2020-04-15T03:11:03.841242+00:00",
-    "valid_from": "2020-03-01T00:00:00-05:00",
-    "valid_to": "2020-03-31T00:00:00-04:00",
-    "price_date": "2020-03-31T00:00:00-04:00",
-    "strategy_name": "PRICE_DISPERSION",
-    "security_type": "US Equities",
-    "securities_set": [
-        {
-            "ticker_symbol": "BA",
-            "price": 152.28
-        },
-        {
-            "ticker_symbol": "XOM",
-            "price": 37.5
-        },
-        {
-            "ticker_symbol": "GE",
-            "price": 7.89
-        }
-    ]
-```
-Additionally, the program will display a Pandas Data Frame containing the ranked stocks used to select the final portfolio, and an indication of its relative performance compared to the average of all all supplied stocks.
-```
-[INFO] - 
-[INFO] - Recommended Securities Return: 19.49%
-[INFO] - Average Return: 4.77%
-[INFO] - 
-[INFO] - Analysis Period - 8/2019, Actual Returns as of: 2019/10/30
-analysis_period ticker  dispersion_stdev_pct  analyst_expected_return  actual_return  decile
-         2019-8     GE                30.652                    0.470          0.225       9
-         2019-8   INTC                15.420                    0.136          0.194       9
-         2019-8   AAPL                14.518                    0.063          0.165       9
-         2019-8    UTX                13.414                    0.191          0.104       8
-         2019-8    MMM                12.581                    0.116          0.041       8
-         2019-8     PG                13.586                   -0.050          0.039       8
-         2019-8    PFE                12.527                    0.246          0.082       7
-         2019-8     GS                11.635                    0.223          0.058       7
-         2019-8    CAT                10.072                    0.220          0.179       6
-         2019-8     BA                 9.590                    0.184         -0.050       6
-         2019-8   MSFT                10.812                    0.093          0.049       6
-         2019-8    XOM                 8.444                    0.222         -0.011       5
-         2019-8    NKE                 9.515                    0.102          0.067       5
-         2019-8    UNH                 7.894                    0.248          0.089       4
-         2019-8   CSCO                 8.093                    0.218          0.016       4
-         2019-8    WMT                 8.045                   -0.007          0.034       4
-         2019-8    IBM                 7.586                    0.157         -0.002       3
-         2019-8    AXP                 7.826                    0.094         -0.019       3
-         2019-8    MCD                 7.857                    0.021         -0.097       3
-         2019-8    MRK                 7.522                    0.040         -0.003       2
-         2019-8    TRV                 7.433                    0.038         -0.117       2
-         2019-8    JPM                 7.262                    0.113          0.144       1
-         2019-8     VZ                 6.668                    0.043          0.046       1
-         2019-8     HD                 6.855                   -0.051          0.037       1
-         2019-8    CVX                 5.515                    0.171         -0.012       0
-         2019-8    JNJ                 5.205                    0.160          0.035       0
-         2019-8      V                 5.398                    0.095         -0.009       0
+[INFO] - Uploading Security Recommendation Set to S3: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/base-recommendations/macd-crossover-recommendation-set.json
+(venv) ~/development/git-projects/stock-advisor/src >>./run_rec_svc.sh
+[INFO] - Parsing command line parameters
+[INFO] - Parameters:
+[INFO] - Application Namespace: sa
+[INFO] - Business Date is: 2020-06-22
+[INFO] - Testing AWS connectivity
+[INFO] - AWS connectivity test successful
+[INFO] - Testing Intrinio connectivity
+[INFO] - Intrinio connectivity test successful
+[INFO] - Loading Strategy Configuration "strategies.ini" from S3
+[INFO] - Downloading Configuration File: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/configuration/strategies.ini --> ./config/strategies.ini.s3download
+[INFO] - Initalizing Trading Strategies
+[INFO] - Downloading TickerList: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/ticker-files/djia30.json --> ./app_data//djia30.json
+[INFO] - Downloading TickerList: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/ticker-files/djia30.json --> ./app_data//djia30.json
+[INFO] - Executing PRICE_DISPERSION strategy
+[INFO] - Downloading Security Recommendation Set: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/base-recommendations/price-dispersion-recommendation-set.json --> ./app_data//price-dispersion-recommendation-set.json
+[INFO] - Recommendation set is still valid. There is nothing to do
+[INFO] - Executing MACD_CROSSOVER strategy
+[INFO] - Downloading Security Recommendation Set: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/base-recommendations/macd-crossover-recommendation-set.json --> ./app_data//macd-crossover-recommendation-set.json
+[INFO] - Recommendation set is still valid. There is nothing to do
 ```
 
-When a new portfolio is generated and the service is running in ```production``` mode, an SNS event will be published resulting in the below email/sms notification.
+When a new portfolio is generated and an SNS event will be published resulting in the below email/sms notification.
 
 ```
 From: sa-app-notification-topic (no-reply@sns.amazonaws.com)
@@ -557,20 +520,6 @@ Ticker Symbol: GE
 Ticker Symbol: XOM
 ```
 
-The previous output illustrates what happens when a new recommendation is created. While running in ```test``` mode always creates a new recommendation, ```production``` mode will first check for an existing recommendation in S3 and only create a new one if one cannot be found or if it is expired based on ```valid_from``` ```valid_to``` date range. If the recommendation is still valid, the service will quietly exit and the output will look like this:
-
-```
-[INFO] - Parameters:
-[INFO] - Environment: PRODUCTION
-[INFO] - Ticker File: djia30.txt
-[INFO] - Output Size: 3
-[INFO] - Analysis Month: 4
-[INFO] - Analysis Year: 2020
-[INFO] - Reading ticker file from s3 bucket
-[INFO] - Loading existing recommendation set from S3
-[INFO] - Downloading Security Recommendation Set: s3://app-infra-base-sadatabucketcc1b0cfa-19um03obhhhy4/base-recommendations/security-recommendation-set.json --> ./app_data/security-recommendation-set.json
-[INFO] - Recommendation set is still valid. There is nothing to do
-```
 
 ## Caching of financial data
 All financial data is saved to a local cache to reduce throttling and API limits when using the Intrinio API. As of this version the data is set to never expire, and the cache will grow to a maximum size of 4GB.
@@ -587,7 +536,7 @@ To delete or reset the contents of the cache, simply delete entire ```./financia
 # Portfolio Manager
 ![Portfolio Manager Design](doc/portfolio-manager.png)
 
-The Portfolio Manager service is a component of the Stock Advisor system that actively manages a protfolio based on the output of the recommendation service. The service is designed to run daily, and typically takes a few seconds to execute. When running in ECS, the service is scheduled to run daily at 11am EST, and will maintain a stock portfolio on the supplied TDAmeritrade account.
+The Portfolio Manager service is a component of the Stock Advisor system that actively manages a portfolio based on the output of the recommendation service. The service is designed to run daily, and typically takes a few seconds to execute. When running in ECS, the service is scheduled to run daily at 11am EST, and will maintain a stock portfolio on the supplied TDAmeritrade account.
 
 ## Portfolio Manager Release Notes
 This is an initial version that offers the following features:
@@ -599,8 +548,8 @@ This is an initial version that offers the following features:
 * Send SNS Notifications with summary of returns and any trading activity
 
 
-## Trading Strategy
-The current strategy is to buy and hold a portfolio based on the most recent recommendations. When a new recommendation set is created, the portfolio will be rebalaned accordingly. Specifically, each time service is run, it will do the following:
+## Portfolio Management Strategy
+The current strategy is to buy and hold a portfolio based on the most recent recommendations. When a new recommendation set is created, the portfolio will be balanced accordingly. Specifically, each time service is run, it will do the following:
 
 1) Read the latest recommendations and portfolio objects from S3.
 2) Reprice the portfolio and update it based on the contents of the recommendations. If the portfolio recommendations have changed then create a new portfolio, otherwise keep the existing one.
@@ -806,7 +755,7 @@ docker run -e INTRINIO_API_KEY=xxx image-id -ticker_file djia30.txt -output_size
 ```
 
 ## Running the service in ECS
-This service is intended to be run in ECS using a Fargate task. The automation contained in the main project will create the ECS Cluster, Task Definitions, Scheduled Tasks, Container Repositories and CodeBuild project needed to build and deploy the service to AWS. Please refer to the main project for instructons on how to leverage automation to build and deploy the system.
+This service is intended to be run in ECS using a Fargate task. The automation contained in the main project will create the ECS Cluster, Task Definitions, Scheduled Tasks, Container Repositories and CodeBuild project needed to build and deploy the service to AWS. Please refer to the main project for instructions on how to leverage automation to build and deploy the system.
 
 Both the Recommendation Service and Portfolio manager are configured to run as scheduled tasks, and run daily
 
