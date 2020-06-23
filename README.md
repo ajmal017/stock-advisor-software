@@ -124,7 +124,7 @@ Here is an example:
 		"BA",
 		"CAT",
 		"CSCO",
-        ...
+        //...
 	]
 }
 ```
@@ -132,12 +132,9 @@ Here is an example:
 When running in production, inputs are defined in a configuration file and are supplied to a strategy during initialization. This configuration identifies the appropriate ticker list and defines other static parameters used by the strategy.
 
 ```ini
-[macd_crossover_strategy]
+[price_dispersion_strategy]
 ticker_list_file_name=djia30.json
-sma_period = 50 
-macd_fast_period = 12
-macd_slow_period = 26
-macd_signal_period = 9
+output_size=3
 ```
 
 This is an example of a strategy that is initialized using configuration. The application namespace is used to identify the S3 bucket used to store inputs. All inputs can be soured locally or from S3. In fact if an input is sourced from S3 and is not found, this software will look for a suitable local alternative and upload it to S3. This is done to simplify the preparation work when new strategies are inroduced.
@@ -153,7 +150,7 @@ config = Configuration.try_from_s3(
 pd_strategy = PriceDispersionStrategy.from_configuration(config, app_namespae)
 ```
 
-Alternatively, strategies can be initialized using a plain constructor. The two are functionally equivalent
+Alternatively, strategies can be initialized using a plain constructor. The two methods are functionally equivalent.
 
 ```python
 from model.ticker_list import TickerList
@@ -162,7 +159,7 @@ ticker_list = TickerList.from_local_file(
             "%s/djia30.json" % (constants.APP_DATA_DIR))
 
 pd_strategy = PriceDispersionStrategy(
-            ticker_list, date(2020, 6, 16), 50, 12, 16, 9)
+            ticker_list, '2020-06', date(2020, 5, 16), 3)
 ```
 
 ## Outputs
@@ -207,8 +204,6 @@ And here is what the recommedation will look like
 
 ```
 
-
-
 ## Price Dispersion Strategy
 
 ### Description
@@ -236,8 +231,70 @@ These are the specific steps:
 4) Select a subset from the top decile(s). This will return stocks with the largest level of disagreement.
 
 ### Inputs
+Other than the standard inputs described above this strategy requires an ```output_size``` that indicates how many securities to return from the top decile.
 
 ### Outputs
+The following is the output that is displayed when the ```display_results()``` is called.
+
+```
+[INFO] - Recommended Securities
+[INFO] - {
+    "set_id": "5d6c5a42-b54d-11ea-a412-acbc329ef75f",
+    "creation_date": "2020-06-23T12:30:47.271203+00:00",
+    "valid_from": "2020-06-01",
+    "valid_to": "2020-06-30",
+    "price_date": "2020-05-31",
+    "strategy_name": "PRICE_DISPERSION",
+    "security_type": "US Equities",
+    "securities_set": [
+        {
+            "ticker_symbol": "BA",
+            "price": 145.85
+        },
+        {
+            "ticker_symbol": "GE",
+            "price": 6.57
+        },
+        {
+            "ticker_symbol": "XOM",
+            "price": 45.47
+        }
+    ]
+}
+[INFO] - 
+[INFO] - Recommended Securities Return: 12.83%
+[INFO] - Average Return: 1.64%
+[INFO] - 
+[INFO] - Analysis Period - 2020-05, Actual Returns as of: 2020-06-22
+analysis_period ticker  dispersion_stdev_pct  analyst_expected_return  actual_return  decile
+        2020-05     BA                36.051                    0.445          0.293       9
+        2020-05     GE                28.961                    0.355          0.072       9
+        2020-05    XOM                26.059                    0.133          0.021       9
+        2020-05     GS                19.965                    0.088          0.035       8
+        2020-05    CAT                20.156                    0.040          0.047       8
+        2020-05    CVX                15.403                    0.143         -0.001       7
+        2020-05    PFE                15.243                    0.090         -0.133       7
+        2020-05    NKE                15.452                    0.016          0.009       7
+        2020-05    TRV                14.848                    0.156          0.086       6
+        2020-05   INTC                15.180                    0.011         -0.045       6
+        2020-05     KO                10.536                    0.141         -0.020       5
+        2020-05    IBM                10.480                    0.063         -0.031       5
+        2020-05   AAPL                13.330                    0.004          0.129       5
+        2020-05    AXP                10.080                    0.107          0.046       4
+        2020-05   CSCO                 9.905                    0.022         -0.056       4
+        2020-05    MCD                 9.181                    0.088          0.006       3
+        2020-05    UNH                 8.997                    0.050         -0.040       3
+        2020-05    MMM                 9.620                    0.011          0.002       3
+        2020-05    WMT                 8.167                    0.070         -0.019       2
+        2020-05   MSFT                 8.276                    0.062          0.095       2
+        2020-05    JPM                 8.048                    0.083         -0.006       1
+        2020-05      V                 8.077                    0.028         -0.001       1
+        2020-05     HD                 7.568                   -0.047          0.003       1
+        2020-05    MRK                 6.081                    0.157         -0.049       0
+        2020-05     PG                 6.668                    0.132          0.016       0
+        2020-05     VZ                 5.883                    0.073         -0.030       0
+```
+
 
 ## MACD Crossover Strategy
 
