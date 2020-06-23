@@ -45,10 +45,13 @@ def main():
     """
 
     description = """
-                A backtest for the PRICE_DISPERSION strategy
+                Backtest script for the PRICE_DISPERSION strategy.
 
-                It works by running the strategy on a monthly basis and then displaying
-                the average current returns vs the selected portolio returns.
+                This script will execute the strategy for each month of available data,
+                and compare the returns of the selected portfolio with the average of the 
+                supplied ticker list.
+                The script will show returns of a 1 month, 2 month and three month horizon
+                displayed as a Pandad Dataframe
 
               """
 
@@ -148,6 +151,7 @@ def main():
         backtest('2019-11')
         backtest('2019-12')
         backtest('2020-01')
+        backtest('2020-02')
 
         backtest_dataframe = pd.DataFrame(backtest_report)
         pd.options.display.float_format = '{:.2f}%'.format

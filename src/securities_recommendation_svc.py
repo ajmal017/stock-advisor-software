@@ -40,18 +40,18 @@ def parse_params():
         (environment, ticker_file_name, output_size, month, year, current_price_date, app_ns)
     """
 
-    description = """ Reads a list of US Equity ticker symbols and recommends a subset of them
-                  based on the degree of analyst target price agreement,
-                  specifically it will select stocks with the lowest agreement and highest
-                  predicted return.
+    description = """ 
+                  Executes all available strategies and creates stock recommendations for each.
+                  Recommendations are represented as JSON documents and are stored using S3.
+                  
+                  The command like input is an application namespace used to identify the AWS resources 
+                  required by the service, namely the S3 bucket used to store the application inputs 
+                  consisting of ticker lists and configuration, and the outputs consisting of
+                  recommendation objects.
 
-                  The input parameters consist of a file with a list of of ticker symbols,
-                  and the month and year period for the recommendations.
-                  The output is a JSON data structure with the final selection.
-
-                  When running this script in "production" mode, the analysis period
-                  is determined at runtime, and the system wil plug into the AWS infrastructure
-                  to read inputs and store outputs.
+                  Recommendations are only created when the existing ones expire; the service
+                  will always inspect the current recommendation before determining whether to execute
+                  the corresponding strategy.
               """
     log.info("Parsing command line parameters")
 

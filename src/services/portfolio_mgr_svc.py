@@ -4,7 +4,7 @@ import logging
 import random
 import dateutil.parser as parser
 from tzlocal import get_localzone
-from datetime import datetime
+from datetime import datetime, date
 from connectors import aws_service_wrapper
 from exception.exceptions import ValidationError, AWSError
 from model.portfolio import Portfolio
@@ -37,7 +37,7 @@ def get_service_inputs(app_ns: str):
     recommendation_set = SecurityRecommendationSet.from_s3(
         app_ns, constants.S3_PRICE_DISPERSION_RECOMMENDATION_SET_OBJECT_NAME)
 
-    if not recommendation_set.is_current(datetime.now()):
+    if not recommendation_set.is_current(date.today()):
         raise ValidationError("Current recommendation set is not valid", None)
 
     try:

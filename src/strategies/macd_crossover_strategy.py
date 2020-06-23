@@ -34,7 +34,7 @@ class MACDCrossoverStrategy(BaseStrategy):
     '''
 
     STRATEGY_NAME = "MACD_CROSSOVER"
-    CONFIG_SECTION = "macd_conversion_strategy"
+    CONFIG_SECTION = "macd_crossover_strategy"
     S3_RECOMMENDATION_SET_OBJECT_NAME = constants.S3_MACD_CROSSOVER_RECOMMENDATION_SET_OBJECT_NAME
 
     MACD_SIGNAL_CROSSOVER_FACTOR = 0.1
